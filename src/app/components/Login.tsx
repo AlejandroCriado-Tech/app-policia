@@ -6,14 +6,24 @@ import { Shield, Lock, Mail, ArrowRight } from 'lucide-react';
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) {
-      login(email);
+    setError('');
+    setLoading(true);
+
+    const result = await login(email, password);
+
+    setLoading(false);
+
+    if (result.ok) {
       navigate('/');
+    } else {
+      setError(result.error || 'Error al iniciar sesión');
     }
   };
 
@@ -70,6 +80,12 @@ export function Login() {
               </div>
             </div>
 
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
@@ -84,19 +100,12 @@ export function Login() {
 
             <button
               type="submit"
-              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              disabled={loading}
+              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Iniciar Sesión <ArrowRight className="w-4 h-4" />
+              {loading ? 'Iniciando sesión...' : <>Iniciar Sesión <ArrowRight className="w-4 h-4" /></>}
             </button>
           </form>
-
-          <div className="mt-8 bg-blue-50 border border-blue-100 rounded-xl p-4">
-            <h4 className="text-sm font-semibold text-blue-800 mb-1">Modo Demo</h4>
-            <p className="text-xs text-blue-600">
-              Para entrar como <strong>alumno</strong> usa cualquier correo. <br/>
-              Para entrar como <strong>profesor (admin)</strong> incluye la palabra <span className="font-mono bg-blue-100 px-1 rounded">profe</span> en el correo (ej: profe@test.com).
-            </p>
-          </div>
         </div>
       </div>
     </div>
