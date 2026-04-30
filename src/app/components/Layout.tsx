@@ -138,9 +138,17 @@ export function Layout() {
                   )}
                 </p>
               </div>
-              <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold border-2 shadow-sm ${user?.role === 'admin' ? 'bg-indigo-600 border-indigo-200' : 'bg-blue-600 border-blue-200'}`}>
-                {user?.name?.charAt(0) || 'U'}
-              </div>
+              {user?.foto ? (
+  <img 
+    src={user.foto} 
+    alt={user.name || ''}
+    className={`h-10 w-10 rounded-full object-cover border-2 shadow-sm ${user?.role === 'admin' ? 'border-indigo-200' : 'border-blue-200'}`}
+  />
+) : (
+  <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold border-2 shadow-sm ${user?.role === 'admin' ? 'bg-indigo-600 border-indigo-200' : 'bg-blue-600 border-blue-200'}`}>
+    {user?.name?.charAt(0) || 'U'}
+  </div>
+)}
             </div>
           </div>
         </header>

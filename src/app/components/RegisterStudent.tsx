@@ -60,7 +60,6 @@ export function RegisterStudent() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Drag to reposition image inside circle
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDraggingImage(true);
     setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
@@ -71,7 +70,6 @@ export function RegisterStudent() {
   }, [isDraggingImage, dragStart]);
   const handleMouseUp = () => setIsDraggingImage(false);
 
-  // Export final cropped image as base64
   const getFinalPhoto = (): string | null => {
     if (!photoPreview || !canvasRef.current) return null;
     const canvas = canvasRef.current;
@@ -99,7 +97,7 @@ export function RegisterStudent() {
     return canvas.toDataURL('image/jpeg', 0.9);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !email || !password) {
@@ -109,18 +107,43 @@ export function RegisterStudent() {
 
     setIsSubmitting(true);
 
-    // Render final cropped photo to canvas before submitting
     const finalPhoto = getFinalPhoto();
 
-    setTimeout(() => {
-      console.log('Alumno registrado con foto:', finalPhoto ? 'sí' : 'no');
+    const partes = name.trim().split(' ');
+    const nombre = partes[0];
+    const apellido1 = partes.slice(1).join(' ') || '';
+
+    try {
+      const response = await fetch('http://localhost:3001/api/alumnos/registrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre,
+          apellido1,
+          correo: email,
+          contrasena: password,
+          foto: finalPhoto
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Error al registrar el alumno');
+        return;
+      }
+
       toast.success('Alumno registrado correctamente');
       setName('');
       setEmail('');
       setPassword('');
       handleRemovePhoto();
+
+    } catch (error) {
+      toast.error('No se pudo conectar con el servidor');
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -134,7 +157,6 @@ export function RegisterStudent() {
         <div className="p-8 md:p-10">
           <form onSubmit={handleSubmit} className="space-y-6">
 
-            {/* Header */}
             <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                 <UserPlus className="w-6 h-6" />
@@ -145,14 +167,12 @@ export function RegisterStudent() {
               </div>
             </div>
 
-            {/* ── PHOTO UPLOAD ── */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Foto de perfil <span className="text-gray-400 font-normal">(opcional)</span>
               </label>
 
               {!photoPreview ? (
-                /* Drop zone */
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -180,10 +200,7 @@ export function RegisterStudent() {
                   </div>
                 </div>
               ) : (
-                /* Photo editor */
                 <div className="flex flex-col items-center gap-5">
-
-                  {/* Preview circle */}
                   <div className="relative">
                     <div
                       className="w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-lg ring-2 ring-blue-200 cursor-grab active:cursor-grabbing select-none"
@@ -207,8 +224,6 @@ export function RegisterStudent() {
                         }}
                       />
                     </div>
-
-                    {/* Remove button */}
                     <button
                       type="button"
                       onClick={handleRemovePhoto}
@@ -220,54 +235,33 @@ export function RegisterStudent() {
 
                   <p className="text-xs text-gray-400 -mt-2">Arrastra la imagen para reencuadrar</p>
 
-                  {/* Controls */}
                   <div className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-3">
-
-                    {/* Zoom */}
                     <div className="flex items-center gap-3">
                       <ZoomOut className="w-4 h-4 text-gray-400 shrink-0" />
                       <input
-                        type="range"
-                        min="0.5"
-                        max="3"
-                        step="0.05"
-                        value={zoom}
+                        type="range" min="0.5" max="3" step="0.05" value={zoom}
                         onChange={(e) => setZoom(Number(e.target.value))}
                         className="flex-1 accent-blue-500 h-1.5 rounded-full"
                       />
                       <ZoomIn className="w-4 h-4 text-gray-400 shrink-0" />
                       <span className="text-xs text-gray-400 w-8 text-right">{Math.round(zoom * 100)}%</span>
                     </div>
-
-                    {/* Rotation */}
                     <div className="flex items-center gap-3">
                       <RotateCw className="w-4 h-4 text-gray-400 shrink-0" />
                       <input
-                        type="range"
-                        min="-180"
-                        max="180"
-                        step="1"
-                        value={rotation}
+                        type="range" min="-180" max="180" step="1" value={rotation}
                         onChange={(e) => setRotation(Number(e.target.value))}
                         className="flex-1 accent-blue-500 h-1.5 rounded-full"
                       />
                       <span className="text-xs text-gray-400 w-8 text-right">{rotation}°</span>
                     </div>
-
-                    {/* Actions row */}
                     <div className="flex gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => { setZoom(1); setRotation(0); setOffset({ x: 0, y: 0 }); }}
-                        className="flex-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg py-1.5 transition-colors bg-white"
-                      >
+                      <button type="button" onClick={() => { setZoom(1); setRotation(0); setOffset({ x: 0, y: 0 }); }}
+                        className="flex-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg py-1.5 transition-colors bg-white">
                         Restablecer
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex-1 text-xs text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg py-1.5 transition-colors bg-white"
-                      >
+                      <button type="button" onClick={() => fileInputRef.current?.click()}
+                        className="flex-1 text-xs text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg py-1.5 transition-colors bg-white">
                         Cambiar foto
                       </button>
                     </div>
@@ -275,35 +269,21 @@ export function RegisterStudent() {
                 </div>
               )}
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-
-              {/* Hidden canvas for final export */}
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
               <canvas ref={canvasRef} className="hidden" />
             </div>
 
-            {/* Divider */}
             <div className="border-t border-gray-100 pt-2" />
 
-            {/* Name */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Nombre completo</label>
               <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                type="text" required value={name} onChange={(e) => setName(e.target.value)}
                 placeholder="Ej: Laura García Pérez"
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors"
               />
             </div>
 
-            {/* Email */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Correo electrónico</label>
               <div className="relative">
@@ -311,17 +291,13 @@ export function RegisterStudent() {
                   <Mail className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                   placeholder="alumno@academia.com"
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors"
                 />
               </div>
             </div>
 
-            {/* Password */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Contraseña temporal</label>
               <div className="relative">
@@ -329,36 +305,28 @@ export function RegisterStudent() {
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type="text"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type="text" required value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="Introduce una contraseña segura"
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors font-mono"
                 />
               </div>
             </div>
 
-            {/* Submit */}
             <div className="pt-6">
               <button
-                type="submit"
-                disabled={isSubmitting}
+                type="submit" disabled={isSubmitting}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <>
-                    <CheckCircle2 className="w-5 h-5" /> Registrar y Crear Acceso
-                  </>
+                  <><CheckCircle2 className="w-5 h-5" /> Registrar y Crear Acceso</>
                 )}
               </button>
             </div>
           </form>
         </div>
 
-        {/* Footer */}
         <div className="bg-slate-50 p-6 border-t border-gray-100 flex items-start gap-4">
           <Shield className="w-6 h-6 text-slate-400 shrink-0 mt-0.5" />
           <div>

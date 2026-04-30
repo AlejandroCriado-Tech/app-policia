@@ -39,16 +39,17 @@ router.post('/login', async (req, res) => {
       { expiresIn: '8h' }
     );
 
-    res.json({
-      token,
-      user: {
-        id: persona.id_persona,
-        nombre: persona.nombre,
-        apellido1: persona.apellido1,
-        correo: persona.correo,
-        rol: persona.rol
-      }
-    });
+  res.json({
+  token,
+  user: {
+    id: persona.id_persona,
+    nombre: persona.nombre,
+    apellido1: persona.apellido1,
+    correo: persona.correo,
+    rol: persona.rol,
+    foto: persona.foto || null
+  }
+});
 
   } catch (error) {
     console.error(error);

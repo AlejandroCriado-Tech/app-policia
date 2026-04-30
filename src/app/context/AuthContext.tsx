@@ -6,6 +6,7 @@ export type User = {
   email: string;
   role: 'student' | 'admin';
   token: string;
+  foto?: string | null;
 } | null;
 
 interface AuthContextType {
@@ -33,13 +34,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { ok: false, error: data.error || 'Error al iniciar sesión' };
       }
 
-      setUser({
-        id: data.user.id,
-        name: `${data.user.nombre} ${data.user.apellido1}`,
-        email: data.user.correo,
-        role: data.user.rol === 'admin' ? 'admin' : 'student',
-        token: data.token,
-      });
+     setUser({
+  id: data.user.id,
+  name: `${data.user.nombre} ${data.user.apellido1}`,
+  email: data.user.correo,
+  role: data.user.rol === 'admin' ? 'admin' : 'student',
+  token: data.token,
+  foto: data.user.foto || null,
+});
 
       return { ok: true };
 
