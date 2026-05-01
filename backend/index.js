@@ -15,6 +15,9 @@ app.use('/api/auth', authRoutes);
 const alumnosRoutes = require('./routes/alumnos');
 app.use('/api/alumnos', alumnosRoutes);
 
+const retosRoutes = require('./routes/retos');
+app.use('/api/retos', retosRoutes);
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
