@@ -18,6 +18,12 @@ app.use('/api/alumnos', alumnosRoutes);
 const retosRoutes = require('./routes/retos');
 app.use('/api/retos', retosRoutes);
 
+const preguntasRoutes = require('./routes/preguntas');
+app.use('/api/preguntas', preguntasRoutes);
+
+const iaRoutes = require('./routes/ia');
+app.use('/api/ia', iaRoutes);
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
