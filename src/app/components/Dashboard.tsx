@@ -23,45 +23,45 @@ export function Dashboard() {
         </div>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Stats Cards */}
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="bg-blue-100 p-4 rounded-xl text-blue-600">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm flex items-center gap-4">
+          <div className="bg-blue-100 dark:bg-blue-900/40 p-4 rounded-xl text-blue-600">
             <BookOpen className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium">Temas Estudiados</p>
-            <h3 className="text-2xl font-bold text-gray-900">0 / 0</h3>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="bg-green-100 p-4 rounded-xl text-green-600">
-            <CheckSquare className="w-8 h-8" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 font-medium">Tests Aprobados</p>
-            <h3 className="text-2xl font-bold text-gray-900">0</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Temas Estudiados</p>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">0 / 0</h3>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="bg-yellow-100 p-4 rounded-xl text-yellow-600">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm flex items-center gap-4">
+          <div className="bg-green-100 dark:bg-green-900/40 p-4 rounded-xl text-green-600">
+            <CheckSquare className="w-8 h-8" />
+          </div>
+          <div>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Tests Aprobados</p>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">0</h3>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm flex items-center gap-4">
+          <div className="bg-yellow-100 dark:bg-yellow-900/40 p-4 rounded-xl text-yellow-600">
             <Trophy className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium">Medallas Obtenidas</p>
-            <h3 className="text-2xl font-bold text-gray-900">0</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Medallas Obtenidas</p>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">0</h3>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Evolución de Notas (Últimos 7 días)</h3>
-            <select className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Evolución de Notas (Últimos 7 días)</h3>
+            <select className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2">
               <option>Esta semana</option>
               <option>Este mes</option>
               <option>Último trimestre</option>
@@ -78,9 +78,9 @@ export function Dashboard() {
                 </defs>
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} />
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" />
+                <Tooltip
+                  contentStyle={{ borderRadius: '8px', border: 'none', backgroundColor: '#1f2937', color: '#f9fafb', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.3)' }}
                 />
                 <Area type="monotone" dataKey="score" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" />
               </AreaChart>
@@ -90,21 +90,19 @@ export function Dashboard() {
 
         {/* Side Panel */}
         <div className="space-y-6">
-          {/* Next Goal */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-gray-400" />
               Reto Actual
             </h3>
-            <div className="text-center py-4 text-gray-500 text-sm">
+            <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
               No hay retos activos en este momento.
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Última Actividad</h3>
-            <div className="text-center py-4 text-gray-500 text-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Última Actividad</h3>
+            <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
               No hay actividad reciente.
             </div>
           </div>

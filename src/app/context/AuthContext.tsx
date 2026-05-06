@@ -15,10 +15,22 @@ interface AuthContextType {
   logout: () => void;
 }
 
+const AUTH_KEY = 'app_policia_user';
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Leer usuario guardado al arrancar la app
+function loadUserFromStorage(): User {
+  try {
+    const raw = localStorage.getItem(AUTH_KEY);
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User>(null);
+  const [user, setUser] = useState<User>(loadUserFromStorage);
 
   const login = async (email: string, password: string) => {
     try {
@@ -34,14 +46,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { ok: false, error: data.error || 'Error al iniciar sesión' };
       }
 
-     setUser({
-  id: data.user.id,
-  name: `${data.user.nombre} ${data.user.apellido1}`,
-  email: data.user.correo,
-  role: data.user.rol === 'admin' ? 'admin' : 'student',
-  token: data.token,
-  foto: data.user.foto || null,
-});
+      const loggedUser: User = {
+        id: data.user.id,
+        name: `${data.user.nombre} ${data.user.apellido1}`,
+        email: data.user.correo,
+        role: data.user.rol === 'admin' ? 'admin' : 'student',
+        token: data.token,
+        foto: data.user.foto || null,
+      };
+
+      // Guardar en localStorage para persistir entre recargas
+      localStorage.setItem(AUTH_KEY, JSON.stringify(loggedUser));
+      setUser(loggedUser);
 
       return { ok: true };
 
@@ -51,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    localStorage.removeItem(AUTH_KEY);
     setUser(null);
   };
 

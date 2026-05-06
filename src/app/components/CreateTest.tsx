@@ -94,10 +94,7 @@ export function CreateTest() {
   const bloqueActual = TEMAS.find(b => b.id_bloque === selectedBloque);
   const temaActual = bloqueActual?.temas.find(t => t.id_tema === selectedTema);
 
-  // ── Handlers de preguntas ──────────────────────────────────────
-  const handleAddQuestion = () => {
-    setQuestions([...questions, emptyQuestion()]);
-  };
+  const handleAddQuestion = () => setQuestions([...questions, emptyQuestion()]);
 
   const handleRemoveQuestion = (index: number) => {
     if (questions.length === 1) { toast.error('El test debe tener al menos una pregunta'); return; }
@@ -110,7 +107,6 @@ export function CreateTest() {
     setQuestions(updated);
   };
 
-  // ── PDF & IA ───────────────────────────────────────────────────
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -129,10 +125,8 @@ export function CreateTest() {
 
   const processFile = async (file: File) => {
     if (file.type !== 'application/pdf') { toast.error('Por favor, sube un archivo PDF'); return; }
-
     setIsImporting(true);
     try {
-      // Convertir PDF a base64
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve((reader.result as string).split(',')[1]);
@@ -147,7 +141,6 @@ export function CreateTest() {
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error || 'Error al procesar el PDF');
 
       setQuestions(data.preguntas.map((p: Question) => ({
@@ -168,13 +161,9 @@ export function CreateTest() {
     }
   };
 
-  // ── Guardar ────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!selectedBloque || !selectedTema) { toast.error('Selecciona un bloque y un tema'); return; }
-
-    const isValid = questions.every(q =>
-      q.enunciado.trim() && q.opcion_a.trim() && q.opcion_b.trim() && q.opcion_c.trim()
-    );
+    const isValid = questions.every(q => q.enunciado.trim() && q.opcion_a.trim() && q.opcion_b.trim() && q.opcion_c.trim());
     if (!isValid) { toast.error('Rellena el enunciado y al menos las opciones A, B y C de cada pregunta'); return; }
 
     setIsSaving(true);
@@ -217,23 +206,23 @@ export function CreateTest() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Crear Nuevo Test</h2>
-        <p className="text-gray-500">Añade preguntas para los alumnos por bloque y tema</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Crear Nuevo Test</h2>
+        <p className="text-gray-500 dark:text-gray-400">Añade preguntas para los alumnos por bloque y tema</p>
       </div>
 
       {/* Selector de bloque y tema */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
           <FileText className="w-5 h-5 text-blue-500" /> Bloque y Tema
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Bloque</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bloque</label>
             <div className="relative">
               <select
                 value={selectedBloque ?? ''}
                 onChange={e => { setSelectedBloque(Number(e.target.value)); setSelectedTema(null); }}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 appearance-none"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-500 appearance-none"
               >
                 <option value="">Selecciona un bloque...</option>
                 {TEMAS.map(b => (
@@ -244,13 +233,13 @@ export function CreateTest() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tema</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tema</label>
             <div className="relative">
               <select
                 value={selectedTema ?? ''}
                 onChange={e => setSelectedTema(Number(e.target.value))}
                 disabled={!selectedBloque}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 appearance-none disabled:opacity-50"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-500 appearance-none disabled:opacity-50"
               >
                 <option value="">Selecciona un tema...</option>
                 {bloqueActual?.temas.map(t => (
@@ -264,21 +253,23 @@ export function CreateTest() {
       </div>
 
       {/* IA Import PDF */}
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 p-1">
-        <div className="bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-white">
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 rounded-xl border border-indigo-100 dark:border-indigo-800 p-1">
+        <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg p-6 border border-white dark:border-gray-700">
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-indigo-100 p-2 rounded-lg">
-              <Wand2 className="w-6 h-6 text-indigo-600" />
+            <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-lg">
+              <Wand2 className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-indigo-900">Importar con Inteligencia Artificial</h3>
-              <p className="text-sm text-indigo-700">Sube un PDF con exámenes y extraemos las preguntas automáticamente.</p>
+              <h3 className="text-lg font-bold text-indigo-900 dark:text-indigo-300">Importar con Inteligencia Artificial</h3>
+              <p className="text-sm text-indigo-700 dark:text-indigo-400">Sube un PDF con exámenes y extraemos las preguntas automáticamente.</p>
             </div>
           </div>
 
           <div
             className={`mt-4 border-2 border-dashed rounded-xl p-8 text-center transition-all ${
-              dragActive ? 'border-indigo-500 bg-indigo-50' : 'border-indigo-200 bg-white hover:border-indigo-300'
+              dragActive
+                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
+                : 'border-indigo-200 dark:border-indigo-700 bg-white dark:bg-gray-700/50 hover:border-indigo-300 dark:hover:border-indigo-600'
             }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -288,24 +279,24 @@ export function CreateTest() {
             <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
             {isImporting ? (
               <div className="flex flex-col items-center gap-4 py-4">
-                <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+                <Loader2 className="w-10 h-10 text-indigo-600 dark:text-indigo-400 animate-spin" />
                 <div>
-                  <p className="text-indigo-900 font-medium">La IA está analizando el documento...</p>
-                  <p className="text-indigo-600 text-sm">Extrayendo preguntas y detectando respuestas correctas</p>
+                  <p className="text-indigo-900 dark:text-indigo-300 font-medium">La IA está analizando el documento...</p>
+                  <p className="text-indigo-600 dark:text-indigo-400 text-sm">Extrayendo preguntas y detectando respuestas correctas</p>
                 </div>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <UploadCloud className="w-8 h-8 text-indigo-600" />
+                <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center">
+                  <UploadCloud className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div>
-                  <p className="text-indigo-900 font-medium mb-1">Arrastra tu PDF aquí o haz clic para subirlo</p>
-                  <p className="text-indigo-500 text-sm">Formato .PDF (Máx. 10MB)</p>
+                  <p className="text-indigo-900 dark:text-indigo-300 font-medium mb-1">Arrastra tu PDF aquí o haz clic para subirlo</p>
+                  <p className="text-indigo-500 dark:text-indigo-400 text-sm">Formato .PDF (Máx. 10MB)</p>
                 </div>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
                 >
                   Seleccionar PDF
                 </button>
@@ -318,38 +309,40 @@ export function CreateTest() {
       {/* Preguntas */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-800">Preguntas</h3>
-          <span className="text-sm text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full font-medium flex items-center gap-1">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Preguntas</h3>
+          <span className="text-sm text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 px-3 py-1 rounded-full font-medium flex items-center gap-1">
             <CheckCircle2 className="w-4 h-4" /> Total: {questions.length}
           </span>
         </div>
 
         {questions.map((q, i) => (
-          <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 relative group">
+          <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 relative group">
             <button
               onClick={() => handleRemoveQuestion(i)}
-              className="absolute top-4 right-4 p-2 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+              className="absolute top-4 right-4 p-2 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
             >
               <Trash2 className="w-5 h-5" />
             </button>
 
             <div className="mb-4 pr-12">
-              <label className="block text-sm font-medium text-gray-900 mb-2">Pregunta {i + 1}</label>
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Pregunta {i + 1}</label>
               <textarea
                 value={q.enunciado}
                 onChange={e => handleQuestionField(i, 'enunciado', e.target.value)}
                 placeholder="Escribe el enunciado de la pregunta..."
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 resize-none h-20"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-500 resize-none h-20"
               />
             </div>
 
             <div className="space-y-3 mb-4">
-              <label className="block text-sm font-medium text-gray-700">Opciones (marca la correcta)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Opciones (marca la correcta)</label>
               {(['a', 'b', 'c', 'd'] as const).map((letra, optIndex) => (
                 <div
                   key={letra}
                   className={`flex items-center gap-3 p-2 rounded-lg border transition-colors ${
-                    q.respuesta_correcta === letra ? 'border-green-400 bg-green-50' : 'border-transparent hover:bg-gray-50'
+                    q.respuesta_correcta === letra
+                      ? 'border-green-400 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
+                      : 'border-transparent hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
                   <input
@@ -359,7 +352,7 @@ export function CreateTest() {
                     onChange={() => handleQuestionField(i, 'respuesta_correcta', letra)}
                     className="w-5 h-5 text-green-600 ml-2 cursor-pointer"
                   />
-                  <span className={`font-bold w-6 text-center ${q.respuesta_correcta === letra ? 'text-green-700' : 'text-gray-400'}`}>
+                  <span className={`font-bold w-6 text-center ${q.respuesta_correcta === letra ? 'text-green-700 dark:text-green-400' : 'text-gray-400'}`}>
                     {letra.toUpperCase()}
                   </span>
                   <input
@@ -367,8 +360,10 @@ export function CreateTest() {
                     value={q[`opcion_${letra}` as keyof Question] as string}
                     onChange={e => handleQuestionField(i, `opcion_${letra}` as keyof Question, e.target.value)}
                     placeholder={`Opción ${letra.toUpperCase()}${optIndex === 3 ? ' (opcional)' : ''}`}
-                    className={`flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 ${
-                      q.respuesta_correcta === letra ? 'border-green-200 bg-white text-green-900' : 'border-gray-200 bg-white'
+                    className={`flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:text-white dark:placeholder-gray-400 ${
+                      q.respuesta_correcta === letra
+                        ? 'border-green-200 dark:border-green-700 bg-white dark:bg-gray-700 text-green-900 dark:text-green-300'
+                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700'
                     }`}
                   />
                 </div>
@@ -376,13 +371,13 @@ export function CreateTest() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Explicación (opcional)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Explicación (opcional)</label>
               <input
                 type="text"
                 value={q.explicacion}
                 onChange={e => handleQuestionField(i, 'explicacion', e.target.value)}
                 placeholder="¿Por qué es correcta esta respuesta?"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-500 text-sm"
               />
             </div>
           </div>
@@ -390,10 +385,10 @@ export function CreateTest() {
       </div>
 
       {/* Acciones */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-200 sticky bottom-0 bg-gray-50/90 backdrop-blur-md p-4 rounded-xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-10">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-gray-50/90 dark:bg-gray-950/90 backdrop-blur-md p-4 rounded-xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-10">
         <button
           onClick={handleAddQuestion}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-xl hover:bg-blue-50 transition-colors font-medium"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 border-2 border-dashed border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors font-medium"
         >
           <PlusCircle className="w-5 h-5" /> Añadir Pregunta Manual
         </button>

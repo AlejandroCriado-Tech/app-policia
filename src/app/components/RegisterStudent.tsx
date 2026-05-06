@@ -149,26 +149,27 @@ export function RegisterStudent() {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div>
-        <h2 className="text-3xl font-black text-gray-900 tracking-tight">Registrar Alumno</h2>
-        <p className="text-gray-500 mt-2">Añade nuevos estudiantes para que tengan acceso a la plataforma</p>
+        <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Registrar Alumno</h2>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">Añade nuevos estudiantes para que tengan acceso a la plataforma</p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div className="p-8 md:p-10">
           <form onSubmit={handleSubmit} className="space-y-6">
 
-            <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+            <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100 dark:border-gray-700">
+              <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center">
                 <UserPlus className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Datos de acceso</h3>
-                <p className="text-sm text-gray-500">Estas serán las credenciales del alumno para entrar a la app.</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Datos de acceso</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Estas serán las credenciales del alumno para entrar a la app.</p>
               </div>
             </div>
 
+            {/* Foto de perfil */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                 Foto de perfil <span className="text-gray-400 font-normal">(opcional)</span>
               </label>
 
@@ -183,19 +184,19 @@ export function RegisterStudent() {
                     border-2 border-dashed rounded-2xl py-10 px-6 cursor-pointer 
                     transition-all duration-200
                     ${isDragging
-                      ? 'border-blue-400 bg-blue-50 scale-[1.01]'
-                      : 'border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50/50'
+                      ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20 scale-[1.01]'
+                      : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 hover:border-blue-300 hover:bg-blue-50/50 dark:hover:bg-blue-900/10'
                     }
                   `}
                 >
-                  <div className="w-16 h-16 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center shadow-sm">
+                  <div className="w-16 h-16 rounded-full bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 flex items-center justify-center shadow-sm">
                     <Camera className="w-7 h-7 text-gray-400" />
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-semibold text-gray-700">Arrastra una foto aquí</p>
-                    <p className="text-xs text-gray-400 mt-1">o haz clic para seleccionar · JPG, PNG, WEBP · Máx. 5 MB</p>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Arrastra una foto aquí</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">o haz clic para seleccionar · JPG, PNG, WEBP · Máx. 5 MB</p>
                   </div>
-                  <div className="flex items-center gap-2 mt-1 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm text-sm font-medium text-gray-600">
+                  <div className="flex items-center gap-2 mt-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-600 dark:text-gray-300">
                     <Upload className="w-4 h-4" /> Seleccionar archivo
                   </div>
                 </div>
@@ -203,7 +204,7 @@ export function RegisterStudent() {
                 <div className="flex flex-col items-center gap-5">
                   <div className="relative">
                     <div
-                      className="w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-lg ring-2 ring-blue-200 cursor-grab active:cursor-grabbing select-none"
+                      className="w-40 h-40 rounded-full overflow-hidden border-4 border-white dark:border-gray-700 shadow-lg ring-2 ring-blue-200 dark:ring-blue-800 cursor-grab active:cursor-grabbing select-none"
                       onMouseDown={handleMouseDown}
                       onMouseMove={handleMouseMove}
                       onMouseUp={handleMouseUp}
@@ -233,9 +234,9 @@ export function RegisterStudent() {
                     </button>
                   </div>
 
-                  <p className="text-xs text-gray-400 -mt-2">Arrastra la imagen para reencuadrar</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 -mt-2">Arrastra la imagen para reencuadrar</p>
 
-                  <div className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-3">
+                  <div className="w-full bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600 rounded-xl p-4 space-y-3">
                     <div className="flex items-center gap-3">
                       <ZoomOut className="w-4 h-4 text-gray-400 shrink-0" />
                       <input
@@ -244,7 +245,7 @@ export function RegisterStudent() {
                         className="flex-1 accent-blue-500 h-1.5 rounded-full"
                       />
                       <ZoomIn className="w-4 h-4 text-gray-400 shrink-0" />
-                      <span className="text-xs text-gray-400 w-8 text-right">{Math.round(zoom * 100)}%</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 w-8 text-right">{Math.round(zoom * 100)}%</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <RotateCw className="w-4 h-4 text-gray-400 shrink-0" />
@@ -253,15 +254,15 @@ export function RegisterStudent() {
                         onChange={(e) => setRotation(Number(e.target.value))}
                         className="flex-1 accent-blue-500 h-1.5 rounded-full"
                       />
-                      <span className="text-xs text-gray-400 w-8 text-right">{rotation}°</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 w-8 text-right">{rotation}°</span>
                     </div>
                     <div className="flex gap-2 pt-1">
                       <button type="button" onClick={() => { setZoom(1); setRotation(0); setOffset({ x: 0, y: 0 }); }}
-                        className="flex-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg py-1.5 transition-colors bg-white">
+                        className="flex-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-lg py-1.5 transition-colors bg-white dark:bg-gray-700">
                         Restablecer
                       </button>
                       <button type="button" onClick={() => fileInputRef.current?.click()}
-                        className="flex-1 text-xs text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg py-1.5 transition-colors bg-white">
+                        className="flex-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 border border-blue-200 dark:border-blue-700 rounded-lg py-1.5 transition-colors bg-white dark:bg-gray-700">
                         Cambiar foto
                       </button>
                     </div>
@@ -273,19 +274,21 @@ export function RegisterStudent() {
               <canvas ref={canvasRef} className="hidden" />
             </div>
 
-            <div className="border-t border-gray-100 pt-2" />
+            <div className="border-t border-gray-100 dark:border-gray-700 pt-2" />
 
+            {/* Nombre */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Nombre completo</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nombre completo</label>
               <input
                 type="text" required value={name} onChange={(e) => setName(e.target.value)}
                 placeholder="Ej: Laura García Pérez"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors"
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:bg-white dark:focus:bg-gray-600 transition-colors"
               />
             </div>
 
+            {/* Email */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Correo electrónico</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Correo electrónico</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-gray-400" />
@@ -293,13 +296,14 @@ export function RegisterStudent() {
                 <input
                   type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                   placeholder="alumno@academia.com"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:bg-white dark:focus:bg-gray-600 transition-colors"
                 />
               </div>
             </div>
 
+            {/* Contraseña */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Contraseña temporal</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Contraseña temporal</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
@@ -307,7 +311,7 @@ export function RegisterStudent() {
                 <input
                   type="text" required value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="Introduce una contraseña segura"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors font-mono"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:bg-white dark:focus:bg-gray-600 transition-colors font-mono"
                 />
               </div>
             </div>
@@ -327,11 +331,11 @@ export function RegisterStudent() {
           </form>
         </div>
 
-        <div className="bg-slate-50 p-6 border-t border-gray-100 flex items-start gap-4">
-          <Shield className="w-6 h-6 text-slate-400 shrink-0 mt-0.5" />
+        <div className="bg-slate-50 dark:bg-gray-700/50 p-6 border-t border-gray-100 dark:border-gray-700 flex items-start gap-4">
+          <Shield className="w-6 h-6 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-sm font-bold text-slate-700 mb-1">Aviso de Privacidad</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Aviso de Privacidad</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Asegúrate de proporcionar la contraseña al estudiante por un medio seguro. El alumno podrá cambiar esta contraseña temporal una vez inicie sesión por primera vez en la plataforma.
             </p>
           </div>

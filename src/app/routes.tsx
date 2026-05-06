@@ -8,8 +8,8 @@ import { Challenges } from "./components/Challenges";
 import { Login } from "./components/Login";
 import { CreateTest } from "./components/CreateTest";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-
 import { RegisterStudent } from "./components/RegisterStudent";
+import { Simulacro } from "./components/Simulacro";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +27,7 @@ export const router = createBrowserRouter([
           { index: true, Component: Dashboard },
           { path: "temarios", Component: Syllabi },
           { path: "tests", Component: Tests },
+          { path: "simulacro", Component: Simulacro },
           { path: "chat", Component: Chat },
           { path: "retos", Component: Challenges },
           { path: "crear-test", Component: CreateTest },

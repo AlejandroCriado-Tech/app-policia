@@ -45,12 +45,10 @@ export function Tests() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // ── Estado del dashboard ───────────────────────────────────────
   const [bloques, setBloques] = useState<Bloque[]>([]);
   const [loadingBloques, setLoadingBloques] = useState(true);
   const [bloqueAbierto, setBloqueAbierto] = useState<number | null>(null);
 
-  // ── Estado del test activo ─────────────────────────────────────
   const [testActivo, setTestActivo] = useState<TestActivo | null>(null);
   const [loadingTest, setLoadingTest] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -61,7 +59,6 @@ export function Tests() {
   const [timeLeft, setTimeLeft] = useState(45 * 60);
   const [timeUsed, setTimeUsed] = useState(0);
 
-  // ── Cargar bloques ─────────────────────────────────────────────
   useEffect(() => {
     fetch('http://localhost:3001/api/preguntas/temas')
       .then(r => r.json())
@@ -70,7 +67,6 @@ export function Tests() {
       .finally(() => setLoadingBloques(false));
   }, []);
 
-  // ── Timer ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!testActivo || testFinished) return;
     const timer = setInterval(() => {
@@ -88,25 +84,16 @@ export function Tests() {
     return `${m.toString().padStart(2,'0')}:${(s % 60).toString().padStart(2,'0')}`;
   };
 
-  // ── Iniciar test ───────────────────────────────────────────────
   const iniciarTest = async (bloque: Bloque, tema: { id_tema: number; nombre: string }) => {
     setLoadingTest(true);
     try {
       const res = await fetch(`http://localhost:3001/api/preguntas/${bloque.id_bloque}/${tema.id_tema}?limit=20`);
       const preguntas: Pregunta[] = await res.json();
-
       if (!preguntas.length) {
         toast.error('Este tema aún no tiene preguntas. El profesor debe añadirlas.');
         return;
       }
-
-      setTestActivo({
-        id_bloque: bloque.id_bloque,
-        id_tema: tema.id_tema,
-        nombre_bloque: bloque.nombre_bloque,
-        nombre_tema: tema.nombre,
-        preguntas,
-      });
+      setTestActivo({ id_bloque: bloque.id_bloque, id_tema: tema.id_tema, nombre_bloque: bloque.nombre_bloque, nombre_tema: tema.nombre, preguntas });
       setCurrentIdx(0);
       setSelectedOption(null);
       setCorreccion(null);
@@ -121,16 +108,13 @@ export function Tests() {
     }
   };
 
-  // ── Corregir pregunta ──────────────────────────────────────────
   const handleCorregir = async () => {
     if (!selectedOption || !testActivo) return;
     const pregunta = testActivo.preguntas[currentIdx];
-
     try {
       const res = await fetch(`http://localhost:3001/api/preguntas/corregir/${pregunta.id_pregunta}`);
       const data = await res.json();
       setCorreccion(data);
-
       if (selectedOption === data.respuesta_correcta) {
         setScore(prev => ({ ...prev, correct: prev.correct + 1 }));
       } else {
@@ -141,7 +125,6 @@ export function Tests() {
     }
   };
 
-  // ── Siguiente pregunta ─────────────────────────────────────────
   const handleNext = () => {
     if (!testActivo) return;
     if (currentIdx < testActivo.preguntas.length - 1) {
@@ -153,12 +136,10 @@ export function Tests() {
     }
   };
 
-  // ── Guardar resultado ──────────────────────────────────────────
   const guardarResultado = useCallback(async () => {
     if (!testActivo || !user?.id) return;
     const total = testActivo.preguntas.length;
     const nota = parseFloat(((score.correct / total) * 10).toFixed(2));
-
     await fetch('http://localhost:3001/api/preguntas/resultado', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -180,60 +161,49 @@ export function Tests() {
     if (testFinished) guardarResultado();
   }, [testFinished, guardarResultado]);
 
-  // ── Pantalla de resultado final ────────────────────────────────
+  // ── Pantalla resultado final ───────────────────────────────────
   if (testActivo && testFinished) {
     const total = testActivo.preguntas.length;
     const nota = ((score.correct / total) * 10).toFixed(1);
     const aprobado = parseFloat(nota) >= 5;
 
     return (
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 max-w-2xl mx-auto mt-8 text-center">
-        <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 ${aprobado ? 'bg-green-100' : 'bg-red-100'}`}>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-8 max-w-2xl mx-auto mt-8 text-center">
+        <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 ${aprobado ? 'bg-green-100 dark:bg-green-900/40' : 'bg-red-100 dark:bg-red-900/40'}`}>
           {aprobado
-            ? <CheckCircle2 className="w-12 h-12 text-green-600" />
-            : <XCircle className="w-12 h-12 text-red-600" />}
+            ? <CheckCircle2 className="w-10 h-10 text-green-500" />
+            : <XCircle className="w-10 h-10 text-red-500" />
+          }
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-1">{aprobado ? '¡Test Superado!' : 'Test Suspendido'}</h2>
-        <p className="text-gray-500 mb-2">{testActivo.nombre_tema}</p>
-        <p className="text-gray-400 text-sm mb-8">Tiempo empleado: {formatTime(timeUsed)}</p>
-
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{nota} / 10</h2>
+        <p className={`text-lg font-semibold mb-6 ${aprobado ? 'text-green-600' : 'text-red-500'}`}>
+          {aprobado ? '¡Aprobado!' : 'Suspendido'}
+        </p>
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-            <div className="text-2xl font-bold text-blue-600">{nota}</div>
-            <div className="text-sm text-gray-500">Nota</div>
+          <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4">
+            <p className="text-2xl font-bold text-green-600">{score.correct}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Correctas</p>
           </div>
-          <div className="bg-green-50 rounded-xl p-4 border border-green-100">
-            <div className="text-2xl font-bold text-green-600">{score.correct}</div>
-            <div className="text-sm text-green-700">Aciertos</div>
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4">
+            <p className="text-2xl font-bold text-red-500">{score.incorrect}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Incorrectas</p>
           </div>
-          <div className="bg-red-50 rounded-xl p-4 border border-red-100">
-            <div className="text-2xl font-bold text-red-600">{score.incorrect}</div>
-            <div className="text-sm text-red-700">Fallos</div>
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
+            <p className="text-2xl font-bold text-gray-700 dark:text-gray-200">{formatTime(timeUsed)}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Tiempo</p>
           </div>
         </div>
-
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={() => iniciarTest(
-              bloques.find(b => b.id_bloque === testActivo.id_bloque)!,
-              { id_tema: testActivo.id_tema, nombre: testActivo.nombre_tema }
-            )}
-            className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
-          >
-            <RotateCcw className="w-5 h-5" /> Repetir Test
-          </button>
-          <button
-            onClick={() => setTestActivo(null)}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md transition-colors"
-          >
-            Volver al Menú
-          </button>
-        </div>
+        <button
+          onClick={() => setTestActivo(null)}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-md transition-all flex items-center gap-2 mx-auto"
+        >
+          <RotateCcw className="w-5 h-5" /> Volver al temario
+        </button>
       </div>
     );
   }
 
-  // ── Pantalla de pregunta activa ────────────────────────────────
+  // ── Test activo ────────────────────────────────────────────────
   if (testActivo) {
     const pregunta = testActivo.preguntas[currentIdx];
     const opciones = [
@@ -244,24 +214,30 @@ export function Tests() {
     ];
 
     return (
-      <div className="max-w-3xl mx-auto mt-4">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
-            <span className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2 ${timeLeft < 300 ? 'bg-red-100 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
-              <Clock className="w-4 h-4" /> {formatTime(timeLeft)}
-            </span>
-            <div className="text-center">
-              <p className="text-xs text-gray-400">{testActivo.nombre_tema}</p>
-              <p className="text-gray-600 font-medium">Pregunta {currentIdx + 1} de {testActivo.preguntas.length}</p>
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
+          {/* Header test */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium">{testActivo.nombre_bloque}</p>
+              <p className="font-bold text-gray-900 dark:text-white">{testActivo.nombre_tema}</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className={`flex items-center gap-2 font-mono font-bold text-lg px-4 py-2 rounded-xl ${timeLeft < 300 ? 'bg-red-100 dark:bg-red-900/40 text-red-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'}`}>
+                <Clock className="w-5 h-5" />
+                {formatTime(timeLeft)}
+              </div>
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {currentIdx + 1} / {testActivo.preguntas.length}
+              </span>
             </div>
             <button onClick={() => setTestActivo(null)} className="text-gray-400 hover:text-red-500 font-medium transition-colors text-sm">
               Abandonar
             </button>
           </div>
 
-          {/* Barra de progreso */}
-          <div className="w-full bg-gray-100 rounded-full h-2 mb-8">
+          {/* Barra progreso */}
+          <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 mb-8">
             <div
               className="bg-blue-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(currentIdx / testActivo.preguntas.length) * 100}%` }}
@@ -269,26 +245,26 @@ export function Tests() {
           </div>
 
           {/* Enunciado */}
-          <h3 className="text-xl font-bold text-gray-900 leading-snug mb-6">{pregunta.enunciado}</h3>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-snug mb-6">{pregunta.enunciado}</h3>
 
           {/* Opciones */}
           <div className="space-y-3">
             {opciones.map(({ letra, texto }) => {
-              let cls = "border-gray-200 hover:bg-blue-50 hover:border-blue-300 bg-white";
+              let cls = "border-gray-200 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 bg-white dark:bg-gray-700";
               let icon = null;
 
               if (correccion) {
                 if (letra === correccion.respuesta_correcta) {
-                  cls = "border-green-500 bg-green-50 text-green-900 ring-1 ring-green-500";
+                  cls = "border-green-500 bg-green-50 dark:bg-green-900/30 text-green-900 dark:text-green-300 ring-1 ring-green-500";
                   icon = <CheckCircle2 className="w-6 h-6 text-green-500 ml-auto shrink-0" />;
                 } else if (letra === selectedOption) {
-                  cls = "border-red-500 bg-red-50 text-red-900 ring-1 ring-red-500";
+                  cls = "border-red-500 bg-red-50 dark:bg-red-900/30 text-red-900 dark:text-red-300 ring-1 ring-red-500";
                   icon = <XCircle className="w-6 h-6 text-red-500 ml-auto shrink-0" />;
                 } else {
-                  cls = "border-gray-200 bg-gray-50 opacity-60";
+                  cls = "border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 opacity-60";
                 }
               } else if (selectedOption === letra) {
-                cls = "border-blue-500 bg-blue-50 ring-2 ring-blue-500";
+                cls = "border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-2 ring-blue-500";
               }
 
               return (
@@ -300,8 +276,8 @@ export function Tests() {
                   {!correccion && (
                     <input type="radio" name="opcion" checked={selectedOption === letra} onChange={() => {}} className="w-5 h-5 text-blue-600 border-gray-300" />
                   )}
-                  <span className={`font-bold w-6 text-center mx-2 ${correccion ? '' : ''}`}>{letra.toUpperCase()}</span>
-                  <span className="font-medium text-gray-700 flex-1">{texto}</span>
+                  <span className="font-bold w-6 text-center mx-2 text-gray-700 dark:text-gray-200">{letra.toUpperCase()}</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-200 flex-1">{texto}</span>
                   {icon}
                 </label>
               );
@@ -310,25 +286,25 @@ export function Tests() {
 
           {/* Explicación */}
           {correccion?.explicacion && (
-            <div className="mt-6 p-5 bg-blue-50 border border-blue-100 rounded-xl">
-              <h4 className="font-bold text-blue-900 flex items-center gap-2 mb-2">
+            <div className="mt-6 p-5 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
+              <h4 className="font-bold text-blue-900 dark:text-blue-300 flex items-center gap-2 mb-2">
                 <AlertCircle className="w-5 h-5" /> Explicación
               </h4>
-              <p className="text-blue-800 text-sm leading-relaxed">{correccion.explicacion}</p>
+              <p className="text-blue-800 dark:text-blue-300 text-sm leading-relaxed">{correccion.explicacion}</p>
             </div>
           )}
 
           {/* Botones */}
-          <div className="mt-8 flex justify-between items-center pt-6 border-t border-gray-100">
+          <div className="mt-8 flex justify-between items-center pt-6 border-t border-gray-100 dark:border-gray-700">
             <div className="flex gap-2">
-              <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded">✓ {score.correct}</span>
-              <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">✗ {score.incorrect}</span>
+              <span className="text-xs font-bold text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded">✓ {score.correct}</span>
+              <span className="text-xs font-bold text-red-600 bg-red-100 dark:bg-red-900/30 px-2 py-1 rounded">✗ {score.incorrect}</span>
             </div>
             {!correccion ? (
               <button
                 onClick={handleCorregir}
                 disabled={selectedOption === null}
-                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-xl shadow-md transition-all flex items-center gap-2"
+                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-xl shadow-md transition-all flex items-center gap-2"
               >
                 Corregir <Zap className="w-5 h-5" />
               </button>
@@ -351,8 +327,8 @@ export function Tests() {
     <div className="space-y-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Tipo Test</h2>
-          <p className="text-gray-500">Selecciona un bloque y un tema para empezar</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Tipo Test</h2>
+          <p className="text-gray-500 dark:text-gray-400">Selecciona un bloque y un tema para empezar</p>
         </div>
         {user?.role === 'admin' && (
           <button
@@ -365,7 +341,7 @@ export function Tests() {
       </div>
 
       {loadingBloques ? (
-        <div className="flex items-center justify-center h-48 text-gray-400">
+        <div className="flex items-center justify-center h-48 text-gray-400 dark:text-gray-500">
           <Loader2 className="w-8 h-8 animate-spin mr-3" /> Cargando temario...
         </div>
       ) : (
@@ -375,36 +351,34 @@ export function Tests() {
             const abierto = bloqueAbierto === bloque.id_bloque;
 
             return (
-              <div key={bloque.id_bloque} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                {/* Cabecera del bloque */}
+              <div key={bloque.id_bloque} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
                 <button
                   onClick={() => setBloqueAbierto(abierto ? null : bloque.id_bloque)}
-                  className="w-full flex items-center gap-4 p-5 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center gap-4 p-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <div className={`w-10 h-10 ${bg} ${text} rounded-xl flex items-center justify-center shrink-0`}>
                     <BookOpen className="w-5 h-5" />
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="font-bold text-gray-900">{bloque.nombre_bloque}</p>
-                    <p className="text-sm text-gray-400">{bloque.temas.length} temas</p>
+                    <p className="font-bold text-gray-900 dark:text-white">{bloque.nombre_bloque}</p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500">{bloque.temas.length} temas</p>
                   </div>
                   <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${abierto ? 'rotate-90' : ''}`} />
                 </button>
 
-                {/* Temas del bloque */}
                 {abierto && (
-                  <div className="border-t border-gray-100 divide-y divide-gray-50">
+                  <div className="border-t border-gray-100 dark:border-gray-700 divide-y divide-gray-50 dark:divide-gray-700">
                     {bloque.temas.map(tema => (
                       <button
                         key={tema.id_tema}
                         onClick={() => iniciarTest(bloque, tema)}
                         disabled={loadingTest}
-                        className="w-full flex items-center gap-4 px-6 py-4 hover:bg-blue-50 transition-colors text-left group"
+                        className="w-full flex items-center gap-4 px-6 py-4 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left group"
                       >
-                        <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 group-hover:text-blue-600 transition-colors shrink-0">
                           {tema.id_tema}
                         </div>
-                        <span className="flex-1 text-gray-700 font-medium group-hover:text-blue-700 transition-colors">{tema.nombre}</span>
+                        <span className="flex-1 text-gray-700 dark:text-gray-300 font-medium group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">{tema.nombre}</span>
                         {loadingTest
                           ? <Loader2 className="w-4 h-4 text-gray-300 animate-spin" />
                           : <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" />}

@@ -61,6 +61,44 @@ router.get('/temas', (req, res) => {
   res.json(temas);
 });
 
+// GET /api/preguntas/simulacro?limit=100 — preguntas aleatorias de todos los bloques
+router.get('/simulacro', async (req, res) => {
+  const limit = req.query.limit ? parseInt(req.query.limit) : 100;
+  try {
+    const [rows] = await db.query(
+      `SELECT id_pregunta, id_bloque, nombre_bloque, id_tema, nombre_tema,
+              enunciado, opcion_a, opcion_b, opcion_c, opcion_d
+       FROM preguntas
+       WHERE activa = 1
+       ORDER BY RAND()
+       LIMIT ?`,
+      [limit]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'No hay preguntas disponibles para el simulacro' });
+    }
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener preguntas del simulacro' });
+  }
+});
+
+// GET /api/preguntas/corregir/:id_pregunta — respuesta correcta de una pregunta
+router.get('/corregir/:id_pregunta', async (req, res) => {
+  const { id_pregunta } = req.params;
+  try {
+    const [rows] = await db.query(
+      `SELECT respuesta_correcta, explicacion FROM preguntas WHERE id_pregunta = ?`,
+      [id_pregunta]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Pregunta no encontrada' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al corregir' });
+  }
+});
+
 // GET /api/preguntas/:id_bloque/:id_tema — preguntas de un tema
 router.get('/:id_bloque/:id_tema', async (req, res) => {
   const { id_bloque, id_tema } = req.params;
@@ -79,21 +117,6 @@ router.get('/:id_bloque/:id_tema', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener preguntas' });
-  }
-});
-
-// GET /api/preguntas/corregir/:id_pregunta — respuesta correcta de una pregunta
-router.get('/corregir/:id_pregunta', async (req, res) => {
-  const { id_pregunta } = req.params;
-  try {
-    const [rows] = await db.query(
-      `SELECT respuesta_correcta, explicacion FROM preguntas WHERE id_pregunta = ?`,
-      [id_pregunta]
-    );
-    if (rows.length === 0) return res.status(404).json({ error: 'Pregunta no encontrada' });
-    res.json(rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al corregir' });
   }
 });
 

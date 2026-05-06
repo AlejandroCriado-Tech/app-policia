@@ -2,7 +2,6 @@ import { Trophy, Star, Target, Zap, Shield, Crown, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
-// Mapa de iconos por nombre (coincide con lo que guardamos en BD)
 const iconMap: Record<string, React.ElementType> = {
   zap: Zap,
   shield: Shield,
@@ -58,7 +57,6 @@ export function Challenges() {
 
   useEffect(() => {
     if (!user?.id) return;
-
     fetch(`http://localhost:3001/api/retos/${user.id}`)
       .then(res => res.json())
       .then(data => {
@@ -71,17 +69,15 @@ export function Challenges() {
       .finally(() => setLoading(false));
   }, [user?.id]);
 
-  // Reto con mayor progreso relativo que no esté completado
   const retoDestacado = retos
     .filter(r => !r.completado)
     .sort((a, b) => (b.progreso / b.objetivo) - (a.progreso / a.objetivo))[0];
 
-  // Posición del usuario en el ranking
   const miPosicion = ranking.findIndex(r => r.id_persona === user?.id) + 1;
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400">
+      <div className="flex items-center justify-center h-64 text-gray-400 dark:text-gray-500">
         <Loader2 className="w-8 h-8 animate-spin mr-3" />
         Cargando retos...
       </div>
@@ -91,8 +87,8 @@ export function Challenges() {
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       <div className="text-center md:text-left">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Retos y Medallas</h2>
-        <p className="text-lg text-gray-500">Supera desafíos y consigue recompensas para mantener la motivación alta</p>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Retos y Medallas</h2>
+        <p className="text-lg text-gray-500 dark:text-gray-400">Supera desafíos y consigue recompensas para mantener la motivación alta</p>
       </div>
 
       {/* Reto destacado */}
@@ -105,7 +101,6 @@ export function Challenges() {
               <p className="text-white/70 text-sm font-medium mb-1 uppercase tracking-wider">Reto en progreso</p>
               <h3 className="text-2xl font-bold mb-1">{retoDestacado.nombre}</h3>
               <p className="text-white/80 mb-4">{retoDestacado.descripcion}</p>
-              {/* Barra de progreso */}
               <div className="bg-white/20 rounded-full h-3 w-full">
                 <div
                   className="bg-white rounded-full h-3 transition-all duration-500"
@@ -119,8 +114,8 @@ export function Challenges() {
           </div>
         </div>
       ) : (
-        <div className="bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl p-8 text-gray-500 shadow-sm text-center">
-          <Trophy className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+        <div className="bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-2xl p-8 text-gray-500 dark:text-gray-300 shadow-sm text-center">
+          <Trophy className="w-16 h-16 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
           <h3 className="text-xl font-bold mb-2">¡Todos los retos completados!</h3>
           <p>Eres un máquina. No hay más retos pendientes.</p>
         </div>
@@ -128,7 +123,7 @@ export function Challenges() {
 
       {/* Medallas */}
       <div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
           <Star className="w-6 h-6 text-yellow-500" fill="currentColor" />
           Tus Medallas
         </h3>
@@ -141,27 +136,33 @@ export function Challenges() {
             return (
               <div
                 key={medalla.id_medalla}
-                className={`bg-white rounded-2xl border ${achieved ? 'border-gray-200 shadow-md' : 'border-dashed border-gray-200 shadow-sm'} p-6 relative overflow-hidden flex flex-col items-center text-center transition-transform hover:-translate-y-1`}
+                className={`bg-white dark:bg-gray-800 rounded-2xl border ${
+                  achieved
+                    ? 'border-gray-200 dark:border-gray-700 shadow-md'
+                    : 'border-dashed border-gray-200 dark:border-gray-700 shadow-sm'
+                } p-6 relative overflow-hidden flex flex-col items-center text-center transition-transform hover:-translate-y-1`}
               >
                 {!achieved && (
-                  <div className="absolute inset-0 bg-gray-50/50 backdrop-blur-[1px] z-10" />
+                  <div className="absolute inset-0 bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-[1px] z-10" />
                 )}
-                <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 relative ${achieved ? colorClass.split(' ')[0] : 'bg-gray-100'}`}>
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 relative ${achieved ? colorClass.split(' ')[0] : 'bg-gray-100 dark:bg-gray-700'}`}>
                   {achieved && (
-                    <div className="absolute -right-2 -top-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100">
+                    <div className="absolute -right-2 -top-2 w-8 h-8 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-600">
                       <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
                     </div>
                   )}
-                  <Icon className={`w-10 h-10 ${achieved ? colorClass.split(' ')[1] : 'text-gray-400'}`} />
+                  <Icon className={`w-10 h-10 ${achieved ? colorClass.split(' ')[1] : 'text-gray-400 dark:text-gray-500'}`} />
                 </div>
-                <h4 className={`text-lg font-bold mb-2 ${achieved ? 'text-gray-900' : 'text-gray-400'}`}>{medalla.nombre}</h4>
-                <p className="text-sm text-gray-500 mb-4 flex-1">{medalla.descripcion}</p>
+                <h4 className={`text-lg font-bold mb-2 ${achieved ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'}`}>
+                  {medalla.nombre}
+                </h4>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 flex-1">{medalla.descripcion}</p>
                 {achieved ? (
-                  <span className="text-xs font-medium text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                  <span className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
                     {medalla.fecha_obtenida}
                   </span>
                 ) : (
-                  <span className="text-xs font-medium text-gray-400 flex items-center gap-1 z-20">
+                  <span className="text-xs font-medium text-gray-400 dark:text-gray-500 flex items-center gap-1 z-20">
                     <Target className="w-3 h-3" /> Por conseguir
                   </span>
                 )}
@@ -172,18 +173,18 @@ export function Challenges() {
       </div>
 
       {/* Ranking */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-          <h3 className="text-xl font-bold text-gray-900">Ranking (Oposición Cáceres)</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex justify-between items-center">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Ranking (Oposición Cáceres)</h3>
           {miPosicion > 0 && (
-            <span className="text-sm font-medium text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm border border-gray-200">
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-1 rounded-full shadow-sm border border-gray-200 dark:border-gray-600">
               Tu posición: #{miPosicion}
             </span>
           )}
         </div>
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 dark:divide-gray-700">
           {ranking.length === 0 ? (
-            <p className="p-6 text-gray-400 text-center">Aún no hay alumnos en el ranking.</p>
+            <p className="p-6 text-gray-400 dark:text-gray-500 text-center">Aún no hay alumnos en el ranking.</p>
           ) : (
             ranking.map((u, index) => {
               const esYo = u.id_persona === user?.id;
@@ -193,17 +194,29 @@ export function Challenges() {
               return (
                 <div
                   key={u.id_persona}
-                  className={`p-4 flex items-center gap-4 ${esYo ? 'bg-blue-50/50' : 'hover:bg-gray-50'} transition-colors`}
+                  className={`p-4 flex items-center gap-4 transition-colors ${
+                    esYo
+                      ? 'bg-blue-50/50 dark:bg-blue-900/20'
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                  }`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${esYo ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                    esYo ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                  }`}>
                     {medallaPos || pos}
                   </div>
-                  <div className="flex-1 font-medium text-gray-900 flex items-center gap-2">
+                  <div className="flex-1 font-medium text-gray-900 dark:text-white flex items-center gap-2">
                     {u.nombre} {u.apellido1}
-                    {esYo && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Tú</span>}
+                    {esYo && (
+                      <span className="text-[10px] bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">
+                        Tú
+                      </span>
+                    )}
                   </div>
                   <div className="text-right">
-                    <span className="font-bold text-gray-900">{u.puntos_totales} <span className="text-gray-400 text-sm font-normal">pts</span></span>
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {u.puntos_totales} <span className="text-gray-400 dark:text-gray-500 text-sm font-normal">pts</span>
+                    </span>
                   </div>
                 </div>
               );

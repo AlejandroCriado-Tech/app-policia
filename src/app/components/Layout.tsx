@@ -10,26 +10,31 @@ import {
   Search,
   Menu,
   PlusCircle,
-  UserPlus
+  UserPlus,
+  Sun,
+  Moon,
+  ShieldAlert
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 export function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const baseNavigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Temarios', href: '/temarios', icon: BookOpen },
     { name: 'Tipo Test', href: '/tests', icon: CheckSquare },
+    { name: 'Simulacro', href: '/simulacro', icon: ShieldAlert },
     { name: user?.role === 'admin' ? 'Chat con Alumnos' : 'Chat Profesores', href: '/chat', icon: MessageCircle },
     { name: 'Retos y Medallas', href: '/retos', icon: Trophy },
   ];
 
-  // Add the Create Test route if the user is an admin
   const navigation = [...baseNavigation];
   if (user?.role === 'admin') {
     navigation.push({ name: 'Crear Test (Admin)', href: '/crear-test', icon: PlusCircle });
@@ -42,7 +47,7 @@ export function Layout() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 transition-colors duration-200">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
@@ -52,7 +57,7 @@ export function Layout() {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-30 w-64 bg-slate-900 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed inset-y-0 left-0 z-30 w-64 bg-slate-900 dark:bg-slate-950 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-center h-20 border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
@@ -100,9 +105,9 @@ export function Layout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-10">
+        <header className="h-20 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 z-10 transition-colors duration-200">
           <button 
-            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu className="h-6 w-6" />
@@ -114,7 +119,7 @@ export function Layout() {
                 <Search className="h-5 w-5 text-gray-400" />
               </div>
               <input
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-gray-50 dark:bg-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
                 placeholder="Buscar temas, tests..."
                 type="search"
               />
@@ -122,39 +127,50 @@ export function Layout() {
           </div>
 
           <div className="ml-4 flex items-center gap-4">
-            <button className="p-2 text-gray-400 hover:text-gray-500 relative">
-              <Bell className="h-6 w-6" />
-              <span className="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white" />
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+            >
+              {theme === 'dark'
+                ? <Sun className="h-5 w-5 text-yellow-400" />
+                : <Moon className="h-5 w-5" />
+              }
             </button>
 
-            <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+            <button className="p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-200 relative">
+              <Bell className="h-6 w-6" />
+              <span className="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white dark:ring-gray-900" />
+            </button>
+
+            <div className="flex items-center gap-3 pl-4 border-l border-gray-200 dark:border-gray-700">
               <div className="text-right hidden md:block">
-                <p className="text-sm font-bold text-gray-900">{user?.name || 'Usuario'}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white">{user?.name || 'Usuario'}</p>
                 <p className="text-xs font-medium text-blue-600 flex items-center justify-end gap-1">
                   {user?.role === 'admin' ? (
-                    <span className="bg-blue-100 px-2 py-0.5 rounded-sm">Admin / Profesor</span>
+                    <span className="bg-blue-100 dark:bg-blue-900 dark:text-blue-300 px-2 py-0.5 rounded-sm">Admin / Profesor</span>
                   ) : (
-                    <span className="text-gray-500">Opositor</span>
+                    <span className="text-gray-500 dark:text-gray-400">Opositor</span>
                   )}
                 </p>
               </div>
               {user?.foto ? (
-  <img 
-    src={user.foto} 
-    alt={user.name || ''}
-    className={`h-10 w-10 rounded-full object-cover border-2 shadow-sm ${user?.role === 'admin' ? 'border-indigo-200' : 'border-blue-200'}`}
-  />
-) : (
-  <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold border-2 shadow-sm ${user?.role === 'admin' ? 'bg-indigo-600 border-indigo-200' : 'bg-blue-600 border-blue-200'}`}>
-    {user?.name?.charAt(0) || 'U'}
-  </div>
-)}
+                <img 
+                  src={user.foto} 
+                  alt={user.name || ''}
+                  className={`h-10 w-10 rounded-full object-cover border-2 shadow-sm ${user?.role === 'admin' ? 'border-indigo-200' : 'border-blue-200'}`}
+                />
+              ) : (
+                <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold border-2 shadow-sm ${user?.role === 'admin' ? 'bg-indigo-600 border-indigo-200' : 'bg-blue-600 border-blue-200'}`}>
+                  {user?.name?.charAt(0) || 'U'}
+                </div>
+              )}
             </div>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-6 lg:p-8 relative">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 p-4 md:p-6 lg:p-8 relative transition-colors duration-200">
           <Outlet />
         </main>
       </div>
