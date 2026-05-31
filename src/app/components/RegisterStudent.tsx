@@ -1,11 +1,13 @@
 import { useState, useRef, useCallback } from 'react';
-import { UserPlus, Mail, Lock, CheckCircle2, Shield, Camera, Upload, X, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+import { UserPlus, Mail, Lock, CheckCircle2, Shield, Camera, Upload, X, ZoomIn, ZoomOut, RotateCw, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function RegisterStudent() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [dni, setDni] = useState('');
+  const [dniError, setDniError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Photo states
@@ -97,11 +99,35 @@ export function RegisterStudent() {
     return canvas.toDataURL('image/jpeg', 0.9);
   };
 
+  const validateDni = (value: string): boolean => {
+    const dniRegex = /^[0-9]{8}[A-Za-z]$/;
+    if (!dniRegex.test(value)) return false;
+    const letras = 'TRWAGMYFPDXBNJZSQVHLCKE';
+    const letra = letras[parseInt(value.slice(0, 8)) % 23];
+    return letra === value.slice(8).toUpperCase();
+  };
+
+  const handleDniChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    setDni(value);
+    if (value.length === 9) {
+      setDniError(validateDni(value) ? '' : 'DNI no válido');
+    } else {
+      setDniError('');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !dni) {
       toast.error('Por favor, rellena todos los campos');
+      return;
+    }
+
+    if (!validateDni(dni)) {
+      setDniError('DNI no válido');
+      toast.error('El DNI introducido no es válido');
       return;
     }
 
@@ -120,6 +146,7 @@ export function RegisterStudent() {
         body: JSON.stringify({
           nombre,
           apellido1,
+          dni: dni.toUpperCase(),
           correo: email,
           contrasena: password,
           foto: finalPhoto
@@ -137,6 +164,8 @@ export function RegisterStudent() {
       setName('');
       setEmail('');
       setPassword('');
+      setDni('');
+      setDniError('');
       handleRemovePhoto();
 
     } catch (error) {
@@ -284,6 +313,24 @@ export function RegisterStudent() {
                 placeholder="Ej: Laura García Pérez"
                 className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:bg-white dark:focus:bg-gray-600 transition-colors"
               />
+            </div>
+
+            {/* DNI */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">DNI</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <CreditCard className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text" required maxLength={9} value={dni} onChange={handleDniChange}
+                  placeholder="Ej: 12345678Z"
+                  className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:bg-white dark:focus:bg-gray-600 transition-colors font-mono uppercase ${dniError ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
+                />
+              </div>
+              {dniError && (
+                <p className="mt-1.5 text-xs text-red-500 dark:text-red-400">{dniError}</p>
+              )}
             </div>
 
             {/* Email */}
