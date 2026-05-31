@@ -40,17 +40,50 @@ router.post('/login', async (req, res) => {
     );
 
   res.json({
-  token,
-  user: {
-    id: persona.id_persona,
-    nombre: persona.nombre,
-    apellido1: persona.apellido1,
-    correo: persona.correo,
-    rol: persona.rol,
-    foto: persona.foto || null
+    token,
+    user: {
+      id: persona.id_persona,
+      nombre: persona.nombre,
+      apellido1: persona.apellido1,
+      correo: persona.correo,
+      rol: persona.rol,
+      foto: persona.foto || null,
+      primer_login: persona.primer_login === 1
+    }
+  });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
+// PUT /api/auth/cambiar-contrasena
+router.put('/cambiar-contrasena', async (req, res) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) return res.status(401).json({ error: 'No autorizado' });
+
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    return res.status(401).json({ error: 'Token inválido o expirado' });
+  }
+
+  const { nuevaContrasena } = req.body;
+  if (!nuevaContrasena || nuevaContrasena.length < 6) {
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+  }
+
+  try {
+    const hash = await bcrypt.hash(nuevaContrasena, 10);
+    await db.query(
+      'UPDATE personas SET contrasena_hash = ?, primer_login = 0 WHERE id_persona = ?',
+      [hash, payload.id]
+    );
+    res.json({ ok: true });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error interno del servidor' });

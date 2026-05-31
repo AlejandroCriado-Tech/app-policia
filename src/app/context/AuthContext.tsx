@@ -7,12 +7,14 @@ export type User = {
   role: 'student' | 'admin';
   token: string;
   foto?: string | null;
+  primerLogin: boolean;
 } | null;
 
 interface AuthContextType {
   user: User;
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
+  completarPrimerLogin: () => void;
 }
 
 const AUTH_KEY = 'app_policia_user';
@@ -53,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: data.user.rol === 'admin' ? 'admin' : 'student',
         token: data.token,
         foto: data.user.foto || null,
+        primerLogin: data.user.primer_login ?? false,
       };
 
       // Guardar en localStorage para persistir entre recargas
@@ -71,8 +74,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const completarPrimerLogin = () => {
+    if (!user) return;
+    const updated = { ...user, primerLogin: false };
+    localStorage.setItem(AUTH_KEY, JSON.stringify(updated));
+    setUser(updated);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, completarPrimerLogin }}>
       {children}
     </AuthContext.Provider>
   );

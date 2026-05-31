@@ -1,8 +1,10 @@
+import { TestView } from "./components/TestView";
 import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
 import { Dashboard } from "./components/Dashboard";
 import { Syllabi } from "./components/Syllabi";
 import { Tests } from "./components/Tests";
+import { StudentList } from "./components/StudentList";
 import { Chat } from "./components/Chat";
 import { Challenges } from "./components/Challenges";
 import { Login } from "./components/Login";
@@ -10,6 +12,7 @@ import { CreateTest } from "./components/CreateTest";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { RegisterStudent } from "./components/RegisterStudent";
 import { Simulacro } from "./components/Simulacro";
+import { CambiarContrasena } from "./components/CambiarContrasena";
 
 export const router = createBrowserRouter([
   {
@@ -21,12 +24,18 @@ export const router = createBrowserRouter([
     Component: ProtectedRoute,
     children: [
       {
+        path: "cambiar-contrasena",
+        Component: CambiarContrasena,
+      },
+      {
         path: "/",
         Component: Layout,
         children: [
           { index: true, Component: Dashboard },
           { path: "temarios", Component: Syllabi },
+          { path: "tests/:id_bloque/:id_tema", Component: TestView },
           { path: "tests", Component: Tests },
+          { path: "alumnos", Component: StudentList },
           { path: "simulacro", Component: Simulacro },
           { path: "chat", Component: Chat },
           { path: "retos", Component: Challenges },
