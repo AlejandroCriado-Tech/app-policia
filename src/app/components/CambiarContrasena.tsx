@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router';
 import { Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/api';
 
 export function CambiarContrasena() {
   const { user, completarPrimerLogin } = useAuth();
@@ -30,7 +31,7 @@ export function CambiarContrasena() {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('http://localhost:3001/api/auth/cambiar-contrasena', {
+      const res = await fetch(`${API_URL}/api/auth/cambiar-contrasena`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

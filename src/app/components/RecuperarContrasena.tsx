@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_URL } from '../lib/api';
 import { Link } from 'react-router';
 import { Shield, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 
@@ -14,7 +15,7 @@ export function RecuperarContrasena() {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:3001/api/auth/recuperar-contrasena', {
+      const res = await fetch(`${API_URL}/api/auth/recuperar-contrasena`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo }),

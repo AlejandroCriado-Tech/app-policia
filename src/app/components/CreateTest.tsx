@@ -1,63 +1,11 @@
-import { useState, useRef } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { PlusCircle, Trash2, Save, FileText, UploadCloud, Wand2, Loader2, CheckCircle2, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/api';
 
-const TEMAS = [
-  { id_bloque: 1, nombre_bloque: "Bloque 1. Derecho Constitucional", temas: [
-    { id_tema: 1, nombre: "La Constitución Española" },
-    { id_tema: 2, nombre: "La Monarquía Parlamentaria" },
-    { id_tema: 3, nombre: "El Gobierno y la Administración" },
-    { id_tema: 4, nombre: "Órganos de Gobierno" },
-  ]},
-  { id_bloque: 2, nombre_bloque: "Bloque 2. Organización territorial, Poder Judicial y Derecho Administrativo", temas: [
-    { id_tema: 1, nombre: "Organización territorial en la Administración General del Estado" },
-    { id_tema: 2, nombre: "La organización territorial del Estado" },
-    { id_tema: 3, nombre: "El Poder Judicial" },
-    { id_tema: 4, nombre: "Fuentes del Derecho Administrativo" },
-    { id_tema: 5, nombre: "El acto administrativo" },
-  ]},
-  { id_bloque: 3, nombre_bloque: "Bloque 3. Procedimiento administrativo, recursos y régimen local", temas: [
-    { id_tema: 1, nombre: "El procedimiento administrativo" },
-    { id_tema: 2, nombre: "Revisión de los actos administrativos. Los recursos administrativos" },
-    { id_tema: 3, nombre: "El régimen local español" },
-    { id_tema: 4, nombre: "La organización municipal" },
-    { id_tema: 5, nombre: "La provincia" },
-    { id_tema: 6, nombre: "Otras entidades locales" },
-  ]},
-  { id_bloque: 4, nombre_bloque: "Bloque 4. Función pública local, gestión administrativa y haciendas locales", temas: [
-    { id_tema: 1, nombre: "La función pública local" },
-    { id_tema: 2, nombre: "Derechos y deberes de los funcionarios de las entidades locales" },
-    { id_tema: 3, nombre: "Formas de acción administrativa" },
-    { id_tema: 4, nombre: "Ordenanzas, reglamentos y bandos" },
-  ]},
-  { id_bloque: 5, nombre_bloque: "Bloque 5. Normativa sobre Cuerpos y Fuerzas de Seguridad", temas: [
-    { id_tema: 1, nombre: "Normativa sobre los Cuerpos y Fuerzas de Seguridad" },
-    { id_tema: 2, nombre: "Las relaciones entre la policía y la sociedad" },
-    { id_tema: 3, nombre: "La seguridad. Concepto" },
-    { id_tema: 4, nombre: "De la denuncia. De la querella. De la inspección ocular..." },
-    { id_tema: 5, nombre: "Ley Orgánica 4/2015, de 30 de marzo de Protección de la Seguridad Ciudadana" },
-    { id_tema: 6, nombre: "Ley Orgánica 1/2004, de 28 de diciembre, de Medidas de Protección Integral contra la Violencia de Género" },
-    { id_tema: 7, nombre: "La Policía Judicial" },
-  ]},
-  { id_bloque: 6, nombre_bloque: "Bloque 6. Derecho Penal", temas: [
-    { id_tema: 1, nombre: "Consideraciones generales sobre Derecho Penal" },
-    { id_tema: 2, nombre: "Delitos de homicidio. Delitos contra la libertad e indemnidad moral..." },
-    { id_tema: 3, nombre: "Delitos contra el patrimonio. Delitos contra los derechos de los ciudadanos extranjeros..." },
-    { id_tema: 4, nombre: "Delitos contra la Administración Pública y contra la Administración de Justicia" },
-    { id_tema: 5, nombre: "Delitos contra la seguridad vial. Especial referencia a su reforma por L.O. 15/2007" },
-    { id_tema: 6, nombre: "Ley Orgánica 5/2000, de 12 de enero, Reguladora de la Responsabilidad Penal de los Menores" },
-  ]},
-  { id_bloque: 7, nombre_bloque: "Bloque 7. Legislación de tráfico", temas: [
-    { id_tema: 1, nombre: "Tráfico, circulación y seguridad vial" },
-    { id_tema: 2, nombre: "Otras normas de circulación" },
-    { id_tema: 3, nombre: "Las autorizaciones administrativas. Permisos y licencias de conducción" },
-    { id_tema: 4, nombre: "Régimen sancionador en materia de tráfico" },
-    { id_tema: 5, nombre: "Accidentes de tráfico" },
-    { id_tema: 6, nombre: "Normas generales sobre señales" },
-  ]},
-];
+type BloqueOption = { id_bloque: number; nombre_bloque: string; temas: { id_tema: number; nombre: string }[] };
 
 interface Question {
   enunciado: string;
@@ -84,14 +32,38 @@ export function CreateTest() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [bloques, setBloques] = useState<BloqueOption[]>([]);
   const [selectedBloque, setSelectedBloque] = useState<number | null>(null);
   const [selectedTema, setSelectedTema] = useState<number | null>(null);
+  const [nextNumeroTest, setNextNumeroTest] = useState<number>(1);
   const [questions, setQuestions] = useState<Question[]>([emptyQuestion()]);
   const [isImporting, setIsImporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
-  const bloqueActual = TEMAS.find(b => b.id_bloque === selectedBloque);
+  useEffect(() => {
+    fetch(`${API_URL}/api/preguntas/temas`)
+      .then(r => r.json())
+      .then(setBloques)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (selectedBloque === null || selectedBloque === 0 || !selectedTema) {
+      setNextNumeroTest(1);
+      return;
+    }
+    fetch(`${API_URL}/api/preguntas/versiones/${selectedBloque}/${selectedTema}`)
+      .then(r => r.json())
+      .then((data: { numero_test: number }[]) => {
+        const max = data.length > 0 ? Math.max(...data.map(d => d.numero_test)) : 0;
+        setNextNumeroTest(max + 1);
+      })
+      .catch(() => setNextNumeroTest(1));
+  }, [selectedBloque, selectedTema]);
+
+  const esSimulacro = selectedBloque === 0;
+  const bloqueActual = bloques.find(b => b.id_bloque === selectedBloque);
   const temaActual = bloqueActual?.temas.find(t => t.id_tema === selectedTema);
 
   const handleAddQuestion = () => setQuestions([...questions, emptyQuestion()]);
@@ -134,7 +106,7 @@ export function CreateTest() {
         reader.readAsDataURL(file);
       });
 
-      const res = await fetch('http://localhost:3001/api/ia/extraer-preguntas', {
+      const res = await fetch(`${API_URL}/api/ia/extraer-preguntas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pdf_base64: base64 }),
@@ -143,17 +115,23 @@ export function CreateTest() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al procesar el PDF');
 
+      if (!data.preguntas || data.preguntas.length === 0) {
+        toast.error('No se encontraron preguntas en el PDF. ¿Tiene formato de test?');
+        return;
+      }
+
       setQuestions(data.preguntas.map((p: Question) => ({
         enunciado: p.enunciado || '',
         opcion_a: p.opcion_a || '',
         opcion_b: p.opcion_b || '',
         opcion_c: p.opcion_c || '',
         opcion_d: p.opcion_d || '',
-        respuesta_correcta: p.respuesta_correcta || 'a',
+        respuesta_correcta: (['a','b','c','d'].includes(p.respuesta_correcta) ? p.respuesta_correcta : 'a') as 'a'|'b'|'c'|'d',
         explicacion: p.explicacion || '',
       })));
 
       toast.success(`¡Se han extraído ${data.preguntas.length} preguntas del PDF!`);
+
     } catch (err: any) {
       toast.error(err.message || 'Error al procesar el PDF');
     } finally {
@@ -162,7 +140,12 @@ export function CreateTest() {
   };
 
   const handleSave = async () => {
-    if (!selectedBloque || !selectedTema) { toast.error('Selecciona un bloque y un tema'); return; }
+    // Validación: si no es simulacro, necesita bloque Y tema
+    if (selectedBloque === null || (!esSimulacro && !selectedTema)) {
+      toast.error('Selecciona un bloque y un tema');
+      return;
+    }
+
     const isValid = questions.every(q => q.enunciado.trim() && q.opcion_a.trim() && q.opcion_b.trim() && q.opcion_c.trim());
     if (!isValid) { toast.error('Rellena el enunciado y al menos las opciones A, B y C de cada pregunta'); return; }
 
@@ -170,14 +153,14 @@ export function CreateTest() {
     try {
       let errores = 0;
       for (const q of questions) {
-        const res = await fetch('http://localhost:3001/api/preguntas', {
+        const res = await fetch(`${API_URL}/api/preguntas`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            id_bloque: selectedBloque,
-            nombre_bloque: bloqueActual?.nombre_bloque,
-            id_tema: selectedTema,
-            nombre_tema: temaActual?.nombre,
+            id_bloque: esSimulacro ? 0 : selectedBloque,
+            nombre_bloque: esSimulacro ? 'Simulacro' : bloqueActual?.nombre_bloque,
+            id_tema: esSimulacro ? 0 : selectedTema,
+            nombre_tema: esSimulacro ? 'Simulacro' : temaActual?.nombre,
             enunciado: q.enunciado,
             opcion_a: q.opcion_a,
             opcion_b: q.opcion_b,
@@ -185,6 +168,7 @@ export function CreateTest() {
             opcion_d: q.opcion_d || null,
             respuesta_correcta: q.respuesta_correcta,
             explicacion: q.explicacion || null,
+            numero_test: esSimulacro ? 1 : nextNumeroTest,
           }),
         });
         if (!res.ok) errores++;
@@ -221,11 +205,17 @@ export function CreateTest() {
             <div className="relative">
               <select
                 value={selectedBloque ?? ''}
-                onChange={e => { setSelectedBloque(Number(e.target.value)); setSelectedTema(null); }}
+                onChange={e => {
+                  const val = Number(e.target.value);
+                  setSelectedBloque(val);
+                  // Si es SIMULACRO (0), auto-asigna tema 0 y deshabilita selector
+                  setSelectedTema(val === 0 ? 0 : null);
+                }}
                 className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-500 appearance-none"
               >
                 <option value="">Selecciona un bloque...</option>
-                {TEMAS.map(b => (
+                <option value="0">🏆 SIMULACRO</option>
+                {bloques.map(b => (
                   <option key={b.id_bloque} value={b.id_bloque}>{b.nombre_bloque}</option>
                 ))}
               </select>
@@ -235,21 +225,45 @@ export function CreateTest() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tema</label>
             <div className="relative">
-              <select
-                value={selectedTema ?? ''}
-                onChange={e => setSelectedTema(Number(e.target.value))}
-                disabled={!selectedBloque}
-                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-500 appearance-none disabled:opacity-50"
-              >
-                <option value="">Selecciona un tema...</option>
-                {bloqueActual?.temas.map(t => (
-                  <option key={t.id_tema} value={t.id_tema}>{t.nombre}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
+              {esSimulacro ? (
+                // Cuando es simulacro, mostramos un campo deshabilitado informativo
+                <div className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                  🏆 Simulacro (todos los bloques)
+                </div>
+              ) : (
+                <>
+                  <select
+                    value={selectedTema ?? ''}
+                    onChange={e => setSelectedTema(Number(e.target.value))}
+                    disabled={!selectedBloque}
+                    className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-500 appearance-none disabled:opacity-50"
+                  >
+                    <option value="">Selecciona un tema...</option>
+                    {bloqueActual?.temas.map(t => (
+                      <option key={t.id_tema} value={t.id_tema}>{t.nombre}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
+                </>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Badge informativo cuando es simulacro */}
+        {esSimulacro && (
+          <div className="mt-4 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-4 py-2">
+            <span>🏆</span>
+            <span>Las preguntas de simulacro se guardan con <strong>id_bloque=0</strong> y aparecerán disponibles en el apartado Simulacro.</span>
+          </div>
+        )}
+        {/* Badge número de test cuando hay tema seleccionado */}
+        {!esSimulacro && selectedBloque !== null && selectedTema !== null && (
+          <div className="mt-4 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-4 py-2">
+            <span>📋</span>
+            <span>Este test se guardará como <strong>Test {nextNumeroTest}</strong> del tema seleccionado.</span>
+          </div>
+        )}
       </div>
 
       {/* IA Import PDF */}

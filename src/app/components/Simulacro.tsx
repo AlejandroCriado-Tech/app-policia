@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import {
   Clock, AlertCircle, PlayCircle, CheckCircle2, XCircle,
   ArrowRight, RotateCcw, Zap, Loader2, ShieldAlert
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
+import { API_URL } from '../lib/api';
 
 type Pregunta = {
   id_pregunta: number;
@@ -60,63 +61,44 @@ export function Simulacro() {
   };
 
   const iniciarSimulacro = async () => {
-    setLoadingPreguntas(true);
-    try {
-      // Pedir preguntas de todos los bloques (bloques 1-7, limit total)
-      const res = await fetch(
-        `http://localhost:3001/api/preguntas/simulacro?limit=${TOTAL_PREGUNTAS}`
-      );
+  setLoadingPreguntas(true);
+  try {
+    const res = await fetch(
+      `${API_URL}/api/preguntas/simulacro?limit=${TOTAL_PREGUNTAS}`
+    );
 
-      if (!res.ok) {
-        // Fallback: si no existe endpoint específico, pedir de cada bloque
-        const resAll = await fetch(`http://localhost:3001/api/preguntas/temas`);
-        const bloques = await resAll.json();
-
-        const porBloque = Math.ceil(TOTAL_PREGUNTAS / bloques.length);
-        const promesas = bloques.map((b: { id_bloque: number }) =>
-          fetch(`http://localhost:3001/api/preguntas/${b.id_bloque}/0?limit=${porBloque}`)
-            .then((r) => r.json())
-            .catch(() => [])
-        );
-        const resultados = await Promise.all(promesas);
-        const todas: Pregunta[] = resultados.flat();
-
-        if (todas.length < 10) {
-          toast.error("No hay suficientes preguntas para el simulacro. El profesor debe añadir más.");
-          return;
-        }
-
-        // Mezclar y recortar
-        const mezcladas = todas.sort(() => Math.random() - 0.5).slice(0, TOTAL_PREGUNTAS);
-        setPreguntas(mezcladas);
-      } else {
-        const data: Pregunta[] = await res.json();
-        if (data.length < 10) {
-          toast.error("No hay suficientes preguntas para el simulacro.");
-          return;
-        }
-        setPreguntas(data);
-      }
-
-      setCurrentIdx(0);
-      setSelectedOption(null);
-      setCorreccion(null);
-      setScore({ correct: 0, incorrect: 0 });
-      setTimeLeft(TIEMPO_TOTAL);
-      setTimeUsed(0);
-      setFase("test");
-    } catch {
-      toast.error("Error al cargar las preguntas del simulacro");
-    } finally {
-      setLoadingPreguntas(false);
+    if (!res.ok) {
+      toast.error('No hay preguntas de simulacro. El profesor debe subir un PDF de simulacro.');
+      return;
     }
-  };
+
+    const data: Pregunta[] = await res.json();
+
+    if (data.length < 10) {
+      toast.error('No hay suficientes preguntas para el simulacro. El profesor debe añadir más.');
+      return;
+    }
+
+    setPreguntas(data);
+    setCurrentIdx(0);
+    setSelectedOption(null);
+    setCorreccion(null);
+    setScore({ correct: 0, incorrect: 0 });
+    setTimeLeft(TIEMPO_TOTAL);
+    setTimeUsed(0);
+    setFase('test');
+  } catch {
+    toast.error('Error al cargar las preguntas del simulacro');
+  } finally {
+    setLoadingPreguntas(false);
+  }
+};
 
   const handleCorregir = async () => {
     if (!selectedOption || !preguntas.length) return;
     const pregunta = preguntas[currentIdx];
     try {
-      const res = await fetch(`http://localhost:3001/api/preguntas/corregir/${pregunta.id_pregunta}`);
+      const res = await fetch(`${API_URL}/api/preguntas/corregir/${pregunta.id_pregunta}`);
       const data = await res.json();
       setCorreccion(data);
       if (selectedOption === data.respuesta_correcta) {
@@ -155,7 +137,7 @@ export function Simulacro() {
   const guardarResultado = useCallback(
     async (nota: number, correctas: number, incorrectas: number, _noRespondidas: number) => {
       if (!user?.id || !preguntas.length) return;
-      await fetch("http://localhost:3001/api/preguntas/resultado", {
+      await fetch(`${API_URL}/api/preguntas/resultado`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

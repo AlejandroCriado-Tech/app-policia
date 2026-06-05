@@ -1,6 +1,7 @@
 import { Trophy, Star, Target, Zap, Shield, Crown, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { API_URL } from '../lib/api';
 
 const iconMap: Record<string, React.ElementType> = {
   zap: Zap,
@@ -57,7 +58,7 @@ export function Challenges() {
 
   useEffect(() => {
     if (!user?.id) return;
-    fetch(`http://localhost:3001/api/retos/${user.id}`)
+    fetch(`${API_URL}/api/retos/${user.id}`)
       .then(res => res.json())
       .then(data => {
         setRetos(data.retos || []);

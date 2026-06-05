@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import {
-  CheckSquare, Clock, BarChart2, Zap, AlertCircle, PlayCircle,
+  Clock, BarChart2, Zap, AlertCircle, PlayCircle,
   CheckCircle2, XCircle, ArrowRight, RotateCcw, PlusCircle,
-  ChevronRight, Loader2, BookOpen
+  ChevronRight, Loader2, BookOpen, Trash2
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { API_URL } from '../lib/api';
 
 const COLORES_BLOQUE = [
   { bg: "bg-blue-100",   text: "text-blue-600"   },
@@ -33,11 +34,14 @@ type Bloque = {
   temas: { id_tema: number; nombre: string }[];
 };
 
+type Version = { numero_test: number; total: number };
+
 type TestActivo = {
   id_bloque: number;
   id_tema: number;
   nombre_bloque: string;
   nombre_tema: string;
+  numero_test: number;
   preguntas: Pregunta[];
 };
 
@@ -48,6 +52,10 @@ export function Tests() {
   const [bloques, setBloques] = useState<Bloque[]>([]);
   const [loadingBloques, setLoadingBloques] = useState(true);
   const [bloqueAbierto, setBloqueAbierto] = useState<number | null>(null);
+  const [temaExpandido, setTemaExpandido] = useState<string | null>(null);
+  const [versiones, setVersiones] = useState<Record<string, Version[]>>({});
+  const [loadingVersiones, setLoadingVersiones] = useState<string | null>(null);
+  const [eliminando, setEliminando] = useState<string | null>(null);
 
   const [testActivo, setTestActivo] = useState<TestActivo | null>(null);
   const [loadingTest, setLoadingTest] = useState(false);
@@ -60,7 +68,7 @@ export function Tests() {
   const [timeUsed, setTimeUsed] = useState(0);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/preguntas/temas')
+    fetch(`${API_URL}/api/preguntas/temas`)
       .then(r => r.json())
       .then(setBloques)
       .catch(() => toast.error('Error cargando temario'))
@@ -84,16 +92,46 @@ export function Tests() {
     return `${m.toString().padStart(2,'0')}:${(s % 60).toString().padStart(2,'0')}`;
   };
 
-  const iniciarTest = async (bloque: Bloque, tema: { id_tema: number; nombre: string }) => {
+  // ── Expandir/colapsar tema y cargar versiones ──────────────────
+  const toggleTema = async (bloque: Bloque, tema: { id_tema: number; nombre: string }) => {
+    const clave = `${bloque.id_bloque}-${tema.id_tema}`;
+    if (temaExpandido === clave) {
+      setTemaExpandido(null);
+      return;
+    }
+    setTemaExpandido(clave);
+    if (!versiones[clave]) {
+      setLoadingVersiones(clave);
+      try {
+        const res = await fetch(`${API_URL}/api/preguntas/versiones/${bloque.id_bloque}/${tema.id_tema}`);
+        const data: Version[] = await res.json();
+        setVersiones(prev => ({ ...prev, [clave]: data }));
+      } catch {
+        toast.error('Error al cargar los tests');
+      } finally {
+        setLoadingVersiones(null);
+      }
+    }
+  };
+
+  // ── Iniciar test de una versión concreta ───────────────────────
+  const iniciarTest = async (bloque: Bloque, tema: { id_tema: number; nombre: string }, numero_test: number) => {
     setLoadingTest(true);
     try {
-      const res = await fetch(`http://localhost:3001/api/preguntas/${bloque.id_bloque}/${tema.id_tema}?limit=20`);
+      const res = await fetch(`${API_URL}/api/preguntas/${bloque.id_bloque}/${tema.id_tema}?numero_test=${numero_test}`);
       const preguntas: Pregunta[] = await res.json();
       if (!preguntas.length) {
-        toast.error('Este tema aún no tiene preguntas. El profesor debe añadirlas.');
+        toast.error('Este test no tiene preguntas.');
         return;
       }
-      setTestActivo({ id_bloque: bloque.id_bloque, id_tema: tema.id_tema, nombre_bloque: bloque.nombre_bloque, nombre_tema: tema.nombre, preguntas });
+      setTestActivo({
+        id_bloque: bloque.id_bloque,
+        id_tema: tema.id_tema,
+        nombre_bloque: bloque.nombre_bloque,
+        nombre_tema: tema.nombre,
+        numero_test,
+        preguntas,
+      });
       setCurrentIdx(0);
       setSelectedOption(null);
       setCorreccion(null);
@@ -108,11 +146,73 @@ export function Tests() {
     }
   };
 
+  // ── Eliminar todos los tests de un tema ────────────────────────
+  const handleEliminar = async (id_bloque: number, id_tema: number, nombre: string) => {
+    const clave = `${id_bloque}-${id_tema}`;
+    if (!window.confirm(`¿Eliminar TODOS los tests de "${nombre}"? Esta acción no se puede deshacer.`)) return;
+    setEliminando(clave);
+    try {
+      const res = await fetch(`${API_URL}/api/preguntas/eliminar/${id_bloque}/${id_tema}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al eliminar');
+      toast.success(`Todos los tests de "${nombre}" eliminados (${data.eliminadas} preguntas)`);
+      setVersiones(prev => { const u = { ...prev }; delete u[clave]; return u; });
+      setTemaExpandido(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al eliminar las preguntas');
+    } finally {
+      setEliminando(null);
+    }
+  };
+
+  // ── Eliminar una versión concreta de test ──────────────────────
+  const handleEliminarVersion = async (id_bloque: number, id_tema: number, numero_test: number) => {
+    const clave = `${id_bloque}-${id_tema}`;
+    if (!window.confirm(`¿Eliminar el Test ${numero_test}? Esta acción no se puede deshacer.`)) return;
+    setEliminando(`${clave}-${numero_test}`);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/preguntas/eliminar/${id_bloque}/${id_tema}?numero_test=${numero_test}`,
+        { method: 'DELETE' }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al eliminar');
+      toast.success(`Test ${numero_test} eliminado (${data.eliminadas} preguntas)`);
+      // Recargar versiones del tema
+      const freshRes = await fetch(`${API_URL}/api/preguntas/versiones/${id_bloque}/${id_tema}`);
+      const freshData: Version[] = await freshRes.json();
+      setVersiones(prev => ({ ...prev, [clave]: freshData }));
+      if (freshData.length === 0) setTemaExpandido(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al eliminar');
+    } finally {
+      setEliminando(null);
+    }
+  };
+
+  // ── Eliminar preguntas del simulacro ───────────────────────────
+  const handleEliminarSimulacro = async () => {
+    if (!window.confirm('¿Eliminar TODAS las preguntas del Simulacro? Esta acción no se puede deshacer.')) return;
+    setEliminando('simulacro');
+    try {
+      const res = await fetch(`${API_URL}/api/preguntas/eliminar/0/0`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al eliminar');
+      toast.success(`Preguntas del Simulacro eliminadas (${data.eliminadas})`);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al eliminar las preguntas del simulacro');
+    } finally {
+      setEliminando(null);
+    }
+  };
+
   const handleCorregir = async () => {
     if (!selectedOption || !testActivo) return;
     const pregunta = testActivo.preguntas[currentIdx];
     try {
-      const res = await fetch(`http://localhost:3001/api/preguntas/corregir/${pregunta.id_pregunta}`);
+      const res = await fetch(`${API_URL}/api/preguntas/corregir/${pregunta.id_pregunta}`);
       const data = await res.json();
       setCorreccion(data);
       if (selectedOption === data.respuesta_correcta) {
@@ -140,7 +240,7 @@ export function Tests() {
     if (!testActivo || !user?.id) return;
     const total = testActivo.preguntas.length;
     const nota = parseFloat(((score.correct / total) * 10).toFixed(2));
-    await fetch('http://localhost:3001/api/preguntas/resultado', {
+    await fetch(`${API_URL}/api/preguntas/resultado`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -221,6 +321,7 @@ export function Tests() {
             <div>
               <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium">{testActivo.nombre_bloque}</p>
               <p className="font-bold text-gray-900 dark:text-white">{testActivo.nombre_tema}</p>
+              <p className="text-xs text-blue-500 font-medium mt-0.5">Test {testActivo.numero_test}</p>
             </div>
             <div className="flex items-center gap-4">
               <div className={`flex items-center gap-2 font-mono font-bold text-lg px-4 py-2 rounded-xl ${timeLeft < 300 ? 'bg-red-100 dark:bg-red-900/40 text-red-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'}`}>
@@ -368,22 +469,107 @@ export function Tests() {
 
                 {abierto && (
                   <div className="border-t border-gray-100 dark:border-gray-700 divide-y divide-gray-50 dark:divide-gray-700">
-                    {bloque.temas.map(tema => (
-                      <button
-                        key={tema.id_tema}
-                        onClick={() => iniciarTest(bloque, tema)}
-                        disabled={loadingTest}
-                        className="w-full flex items-center gap-4 px-6 py-4 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left group"
-                      >
-                        <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 group-hover:text-blue-600 transition-colors shrink-0">
-                          {tema.id_tema}
+                    {bloque.temas.map(tema => {
+                      const clave = `${bloque.id_bloque}-${tema.id_tema}`;
+                      const estaEliminando = eliminando === clave;
+                      const expandido = temaExpandido === clave;
+                      const vers = versiones[clave] || [];
+                      const isLoadingVers = loadingVersiones === clave;
+
+                      return (
+                        <div key={tema.id_tema}>
+                          {/* Fila del tema */}
+                          <div className="flex items-center group hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                            <button
+                              onClick={() => toggleTema(bloque, tema)}
+                              disabled={loadingTest || !!eliminando}
+                              className="flex-1 flex items-center gap-4 px-6 py-4 text-left disabled:opacity-50"
+                            >
+                              <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 group-hover:text-blue-600 transition-colors shrink-0">
+                                {tema.id_tema}
+                              </div>
+                              <span className="flex-1 text-gray-700 dark:text-gray-300 font-medium group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
+                                {tema.nombre}
+                              </span>
+                              {vers.length > 0 && (
+                                <span className="text-xs font-medium text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
+                                  {vers.length} {vers.length === 1 ? 'test' : 'tests'}
+                                </span>
+                              )}
+                              <ChevronRight className={`w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-all ${expandido ? 'rotate-90' : ''}`} />
+                            </button>
+
+                            {/* Botón eliminar todos: solo admin */}
+                            {user?.role === 'admin' && (
+                              <button
+                                onClick={() => handleEliminar(bloque.id_bloque, tema.id_tema, tema.nombre)}
+                                disabled={!!eliminando}
+                                title="Eliminar todos los tests de este tema"
+                                className="mr-4 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 disabled:opacity-30"
+                              >
+                                {estaEliminando
+                                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                                  : <Trash2 className="w-4 h-4" />
+                                }
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Sub-lista de versiones */}
+                          {expandido && (
+                            <div className="bg-gray-50 dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-700/50">
+                              {isLoadingVers ? (
+                                <div className="flex items-center gap-3 pl-16 pr-6 py-4 text-gray-400 dark:text-gray-500 text-sm">
+                                  <Loader2 className="w-4 h-4 animate-spin" /> Cargando tests...
+                                </div>
+                              ) : vers.length === 0 ? (
+                                <div className="pl-16 pr-6 py-4 text-sm text-gray-400 dark:text-gray-500 italic">
+                                  No hay tests disponibles. El profesor debe añadirlos desde "Crear Test".
+                                </div>
+                              ) : (
+                                <div className="divide-y divide-gray-100 dark:divide-gray-700/40">
+                                  {vers.map(v => {
+                                    const vClave = `${bloque.id_bloque}-${tema.id_tema}-${v.numero_test}`;
+                                    const estaEliminandoV = eliminando === vClave;
+                                    return (
+                                      <div key={v.numero_test} className="flex items-center group/v hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                                        <button
+                                          onClick={() => iniciarTest(bloque, tema, v.numero_test)}
+                                          disabled={loadingTest || !!eliminando}
+                                          className="flex-1 flex items-center gap-3 pl-14 pr-4 py-3 text-left disabled:opacity-50"
+                                        >
+                                          <PlayCircle className="w-5 h-5 text-blue-400 shrink-0" />
+                                          <span className="font-semibold text-gray-700 dark:text-gray-300 group-hover/v:text-blue-700 dark:group-hover/v:text-blue-400 transition-colors">
+                                            Test {v.numero_test}
+                                          </span>
+                                          <span className="text-sm text-gray-400 dark:text-gray-500">
+                                            {v.total} preguntas
+                                          </span>
+                                          {loadingTest && <Loader2 className="w-4 h-4 text-gray-300 animate-spin ml-auto" />}
+                                        </button>
+                                        {user?.role === 'admin' && (
+                                          <button
+                                            onClick={() => handleEliminarVersion(bloque.id_bloque, tema.id_tema, v.numero_test)}
+                                            disabled={!!eliminando}
+                                            title={`Eliminar Test ${v.numero_test}`}
+                                            className="mr-4 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover/v:opacity-100 disabled:opacity-30"
+                                          >
+                                            {estaEliminandoV
+                                              ? <Loader2 className="w-4 h-4 animate-spin" />
+                                              : <Trash2 className="w-4 h-4" />
+                                            }
+                                          </button>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <span className="flex-1 text-gray-700 dark:text-gray-300 font-medium group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">{tema.nombre}</span>
-                        {loadingTest
-                          ? <Loader2 className="w-4 h-4 text-gray-300 animate-spin" />
-                          : <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" />}
-                      </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -410,10 +596,23 @@ export function Tests() {
               </div>
             </div>
           </div>
-          <div className="flex justify-start md:justify-end">
+          <div className="flex flex-col items-start md:items-end gap-3">
             <button className="bg-white text-slate-900 hover:bg-blue-50 font-bold py-4 px-8 rounded-xl shadow-lg transition-transform hover:scale-105 flex items-center gap-3 opacity-60 cursor-not-allowed">
               <PlayCircle className="w-6 h-6 text-blue-600" /> Próximamente
             </button>
+            {user?.role === 'admin' && (
+              <button
+                onClick={handleEliminarSimulacro}
+                disabled={!!eliminando}
+                className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-900/30 px-4 py-2 rounded-lg transition-all disabled:opacity-40"
+              >
+                {eliminando === 'simulacro'
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <Trash2 className="w-4 h-4" />
+                }
+                Eliminar preguntas del Simulacro
+              </button>
+            )}
           </div>
         </div>
       </div>

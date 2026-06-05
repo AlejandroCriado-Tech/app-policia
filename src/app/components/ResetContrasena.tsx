@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_URL } from '../lib/api';
 import { useNavigate, useSearchParams, Link } from 'react-router';
 import { Shield, Lock, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 
@@ -33,7 +34,7 @@ export function ResetContrasena() {
 
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3001/api/auth/reset-contrasena', {
+      const res = await fetch(`${API_URL}/api/auth/reset-contrasena`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, nuevaContrasena }),

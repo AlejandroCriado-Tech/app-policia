@@ -1,6 +1,7 @@
-import { useState, useRef, useCallback } from 'react';
+﻿import { useState, useRef, useCallback } from 'react';
 import { UserPlus, Mail, Lock, CheckCircle2, Shield, Camera, Upload, X, ZoomIn, ZoomOut, RotateCw, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
+import { API_URL } from '../lib/api';
 
 export function RegisterStudent() {
   const [name, setName] = useState('');
@@ -140,7 +141,7 @@ export function RegisterStudent() {
     const apellido1 = partes.slice(1).join(' ') || '';
 
     try {
-      const response = await fetch('http://localhost:3001/api/alumnos/registrar', {
+      const response = await fetch(`${API_URL}/api/alumnos/registrar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

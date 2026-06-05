@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
+import { API_URL } from '../lib/api';
 
 export type User = {
   id: number;
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo: email, contrasena: password }),
@@ -52,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: data.user.id,
         name: `${data.user.nombre} ${data.user.apellido1}`,
         email: data.user.correo,
-        role: data.user.rol === 'admin' ? 'admin' : 'student',
+        role: (data.user.rol === 'admin' || data.user.rol === 'profesor') ? 'admin' : 'student',
         token: data.token,
         foto: data.user.foto || null,
         primerLogin: data.user.primer_login ?? false,
