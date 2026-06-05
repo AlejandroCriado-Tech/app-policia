@@ -1,6 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npm install && npm run build",
   "outputDirectory": "dist",
-  "framework": "vite",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':!backend'"
+  "framework": "vite"
 }
