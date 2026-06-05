@@ -13,11 +13,21 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { RegisterStudent } from "./components/RegisterStudent";
 import { Simulacro } from "./components/Simulacro";
 import { CambiarContrasena } from "./components/CambiarContrasena";
+import { RecuperarContrasena } from "./components/RecuperarContrasena";
+import { ResetContrasena } from "./components/ResetContrasena";
 
 export const router = createBrowserRouter([
   {
     path: "/login",
     Component: Login,
+  },
+  {
+    path: "/recuperar",
+    Component: RecuperarContrasena,
+  },
+  {
+    path: "/reset",
+    Component: ResetContrasena,
   },
   {
     path: "/",

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { Shield, Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
@@ -105,7 +105,7 @@ export function Login() {
                 </label>
               </div>
               <div className="text-sm">
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">¿Olvidaste la contraseña?</a>
+                <Link to="/recuperar" className="font-medium text-blue-600 hover:text-blue-500">¿Olvidaste la contraseña?</Link>
               </div>
             </div>
 
